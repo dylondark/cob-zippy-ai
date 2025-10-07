@@ -20,8 +20,11 @@ public:
     explicit OllamaInterface(string url, string model);
     ~OllamaInterface();
 
-    // Pings the Ollama server to check if it is available.
+    // Ping the Ollama server
     bool ping();
+
+    // Send a prompt to the model and receive the result asynchronously
+    void sendPrompt(const QString &systemPrompt, const QString &userPrompt);
 
     bool isConnected() const;
     void setURL(string url);
@@ -31,9 +34,12 @@ public:
 
 signals:
     void pingFinished(bool success);
+    void responseReceived(const QString &response);
+    void requestError(const QString &error);
 
 private slots:
     void onPingReply(QNetworkReply *reply);
+    void onPromptReply(QNetworkReply *reply);
 
 private:
     bool connected;

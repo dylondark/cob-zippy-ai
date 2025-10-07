@@ -1,16 +1,15 @@
 #include "ollamainterface.h"
 #include <iostream>
 #include <QEventLoop>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 OllamaInterface::OllamaInterface(string url, string model)
     : connected(false), url(std::move(url)), model(std::move(model))
 {
     networkManager = new QNetworkAccessManager(this);
-    connect(networkManager, &QNetworkAccessManager::finished,
-            this, &OllamaInterface::onPingReply);
-
-    worker.moveToThread(&requestThread);
-    requestThread.start();
 }
 
 OllamaInterface::~OllamaInterface()
@@ -26,31 +25,89 @@ bool OllamaInterface::ping()
     QNetworkRequest request(pingUrl);
     QNetworkReply *reply = networkManager->get(request);
 
-    // Use an event loop to wait synchronously for completion (like curl_easy_perform)
     QEventLoop loop;
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
     bool success = (reply->error() == QNetworkReply::NoError);
     connected = success;
-    reply->deleteLater();
-
     emit pingFinished(success);
+
+    if (!success)
+        emit requestError(reply->errorString());
+
+    reply->deleteLater();
     return success;
+}
+
+void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &userPrompt)
+{
+    if (!connected)
+    {
+        emit requestError("Not connected to Ollama server.");
+        return;
+    }
+
+    QUrl endpoint(QString::fromStdString(url + "/api/generate"));
+    QNetworkRequest request(endpoint);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QJsonObject json;
+    json["model"] = QString::fromStdString(model);
+    json["system"] = systemPrompt;
+    json["prompt"] = userPrompt;
+    json["stream"] = false;  // Can be set to true for streaming responses
+
+    QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { onPromptReply(reply); });
 }
 
 void OllamaInterface::onPingReply(QNetworkReply *reply)
 {
-    if (reply->error() == QNetworkReply::NoError)
+    connected = (reply->error() == QNetworkReply::NoError);
+
+    if (connected)
     {
-        connected = true;
         std::cout << "Ping successful." << std::endl;
     }
     else
     {
-        connected = false;
         std::cerr << "Ping failed: " << reply->errorString().toStdString() << std::endl;
+        emit requestError(reply->errorString());
     }
+
+    emit pingFinished(connected);
+    reply->deleteLater();
+}
+
+void OllamaInterface::onPromptReply(QNetworkReply *reply)
+{
+    if (reply->error() == QNetworkReply::NoError)
+    {
+        QByteArray responseData = reply->readAll();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
+        QString text;
+
+        if (jsonResponse.isObject())
+        {
+            QJsonObject obj = jsonResponse.object();
+            if (obj.contains("response"))
+                text = obj["response"].toString();
+            else
+                text = QString::fromUtf8(responseData);
+        }
+        else
+        {
+            text = QString::fromUtf8(responseData);
+        }
+
+        emit responseReceived(text);
+    }
+    else
+    {
+        emit requestError(reply->errorString());
+    }
+
     reply->deleteLater();
 }
 
