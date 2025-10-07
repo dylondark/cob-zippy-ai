@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.VirtualKeyboard
+import QtQuick.Controls
 
 Window {
     id: window
@@ -7,6 +8,16 @@ Window {
     height: 480
     visible: true
     title: qsTr("Hello World")
+
+    Button {
+        id: configButton
+        text: "Ollama Config"
+        onClicked: {
+            const component = Qt.createComponent("OllamaConfig.qml")
+            const win = component.createObject()
+            if (win) win.show()
+        }
+    }
 
     InputPanel {
         id: inputPanel
