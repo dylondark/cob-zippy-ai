@@ -17,6 +17,7 @@ qt_add_qml_module(appcob_zippy_ai
     VERSION 1.0
     QML_FILES
         Main.qml
+        SOURCES ollamainterface.h ollamainterface.cpp threadworker.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
