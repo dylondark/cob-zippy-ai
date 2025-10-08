@@ -29,7 +29,7 @@ bool OllamaInterface::ping()
     connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
-    bool success = (reply->error() == QNetworkReply::NoError);
+    bool success = (reply->error() == QNetworkReply::NoError || reply->error() == QNetworkReply::ContentNotFoundError);
     connected = success;
     emit pingFinished(success);
 
