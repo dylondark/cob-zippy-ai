@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.VirtualKeyboard
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Window {
     id: window
@@ -9,13 +10,63 @@ Window {
     visible: true
     title: qsTr("Hello World")
 
-    Button {
-        id: configButton
-        text: "Ollama Config"
-        onClicked: {
-            const component = Qt.createComponent("OllamaConfig.qml")
-            const win = component.createObject()
-            if (win) win.show()
+    ColumnLayout {
+        id: mainLayout
+        anchors.fill: parent
+
+        Button {
+            id: configButton
+            text: "Ollama Config"
+            onClicked: {
+                const component = Qt.createComponent("OllamaConfig.qml")
+                const win = component.createObject()
+                if (win) win.show()
+            }
+        }
+
+        TextArea {
+            id: chatArea
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            readOnly: true
+            wrapMode: TextArea.Wrap
+
+            Connections {
+                target: controller
+                function onGenerateFinished(response) {
+                    chatArea.append("Model: " + response)
+                }
+            }
+        }
+
+        RowLayout {
+            id: inputLayout
+            Layout.fillWidth: true
+
+            TextField {
+                id: inputField
+                Layout.fillWidth: true
+                placeholderText: "Type your message..."
+                onAccepted: {
+                    if (inputField.text.trim() !== "") {
+                        chatArea.append("User: " + inputField.text)
+                        controller.generate(inputField.text)
+                        inputField.text = ""
+                    }
+                }
+            }
+
+            Button {
+                id: sendButton
+                text: "Send"
+                onClicked: {
+                    if (inputField.text.trim() !== "") {
+                        chatArea.append("User: " + inputField.text)
+                        controller.generate(inputField.text)
+                        inputField.text = ""
+                    }
+                }
+            }
         }
     }
 

@@ -74,20 +74,6 @@ void ProgramController::generate(const QString& prompt)
 */
 void ProgramController::onGenerateFinished(QString response)
 {
-    // parse the response
-    try
-    {
-        nlohmann::json json_obj = nlohmann::json::parse(response.toStdString());
-        QString content = QString::fromStdString(json_obj["message"]["content"].get<std::string>());
-
-        std::cout << "ollama raw response: " << content.toStdString() << "\n";
-    }
-    catch (...)
-    {
-        emit promptParserError(response);
-        return;
-    }
-
     // connect this in QML to get the response
     emit generateFinished(response);
 }
