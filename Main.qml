@@ -8,15 +8,34 @@ Window {
     width: 640
     height: 480
     visible: true
-    title: qsTr("Hello World")
+    title: qsTr("Zippy AI")
+
+    Rectangle {
+        anchors.fill: parent
+        color: "#070c72"
+    }
 
     ColumnLayout {
         id: mainLayout
-        anchors.fill: parent
+        spacing: 10
+
+
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: window.height - (inputPanel.active ? inputPanel.height : 0)
+
+        Behavior on height {
+            NumberAnimation {
+                duration: 250
+                easing.type: Easing.InOutQuad
+            }
+        }
 
         Button {
             id: configButton
             text: "Ollama Config"
+            Layout.alignment: Qt.AlignRight
             onClicked: {
                 const component = Qt.createComponent("OllamaConfig.qml")
                 const win = component.createObject()
@@ -24,12 +43,28 @@ Window {
             }
         }
 
+        Image {
+            id: zippyImage
+            source: "qrc:/images/zippy_photo.png"
+            Layout.preferredWidth: 150
+            Layout.preferredHeight: 150
+            Layout.alignment: Qt.AlignHCenter
+            fillMode: Image.PreserveAspectFit
+        }
+
+
         TextArea {
             id: chatArea
             Layout.fillWidth: true
             Layout.fillHeight: true
             readOnly: true
             wrapMode: TextArea.Wrap
+
+            color: "white"
+            background: Rectangle {
+                color: "#00000033"
+                radius: 5
+            }
 
             Connections {
                 target: controller
@@ -39,31 +74,59 @@ Window {
             }
         }
 
-        RowLayout {
-            id: inputLayout
+        Rectangle {
+            id: inputBar
             Layout.fillWidth: true
+            Layout.preferredHeight: 85
+            color: "#282c34"
 
-            TextField {
-                id: inputField
-                Layout.fillWidth: true
-                placeholderText: "Type your message..."
-                onAccepted: {
-                    if (inputField.text.trim() !== "") {
-                        chatArea.append("User: " + inputField.text)
-                        controller.generate(inputField.text)
-                        inputField.text = ""
+            RowLayout {
+                id: inputLayout
+                anchors.fill: parent
+                anchors.leftMargin: 15
+                anchors.rightMargin: 15
+                spacing: 15
+
+                TextField {
+                    id: inputField
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    placeholderText: "Ask Zippy anything..."
+                    font.pixelSize: 22
+                    color: "white"
+
+
+                    activeFocusOnPress: true
+
+                    background: Rectangle {
+                        color: "#3c4049"
+                        border.color: "steelblue"
+                        radius: 8
+                    }
+
+                    onAccepted: {
+                        if (inputField.text.trim() !== "") {
+                            chatArea.append("User: " + inputField.text)
+                            controller.generate(inputField.text)
+                            inputField.text = ""
+                        }
                     }
                 }
-            }
 
-            Button {
-                id: sendButton
-                text: "Send"
-                onClicked: {
-                    if (inputField.text.trim() !== "") {
-                        chatArea.append("User: " + inputField.text)
-                        controller.generate(inputField.text)
-                        inputField.text = ""
+                Button {
+                    id: sendButton
+                    text: "Send"
+                    Layout.fillHeight: true
+                    Layout.minimumWidth: 80
+                    font.pixelSize: 22
+                    font.bold: true
+
+                    onClicked: {
+                        if (inputField.text.trim() !== "") {
+                            chatArea.append("User: " + inputField.text)
+                            controller.generate(inputField.text)
+                            inputField.text = ""
+                        }
                     }
                 }
             }
