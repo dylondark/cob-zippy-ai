@@ -1,5 +1,4 @@
 #include "programcontroller.h"
-#include <nlohmann/json.hpp>
 #include <iostream>
 
 ProgramController::ProgramController(QObject *parent)
