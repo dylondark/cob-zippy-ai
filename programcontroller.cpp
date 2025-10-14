@@ -2,7 +2,7 @@
 #include <iostream>
 
 ProgramController::ProgramController(QObject *parent)
-    : QObject(parent), ollama("http://localhost:11434", "llama3.2:3b")
+    : QObject(parent), ollama("http://localhost:11434", "gemma3:4b")
 {
     connect(&ollama, &OllamaInterface::responseReceived, this, &ProgramController::onGenerateFinished);
 }
