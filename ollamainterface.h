@@ -35,6 +35,7 @@ public:
 signals:
     void pingFinished(bool success);
     void responseReceived(const QString &response);
+    void responseFinished();
     void requestError(const QString &error);
 
 private slots:

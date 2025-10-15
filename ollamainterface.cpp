@@ -56,10 +56,10 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     json["model"] = QString::fromStdString(model);
     json["system"] = systemPrompt;
     json["prompt"] = userPrompt;
-    json["stream"] = false;  // Can be set to true for streaming responses
+    json["stream"] = true;  // Can be set to true for streaming responses
 
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { onPromptReply(reply); });
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { onPromptReply(reply); });
 }
 
 void OllamaInterface::onPingReply(QNetworkReply *reply)
@@ -95,6 +95,18 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                 text = obj["response"].toString();
             else
                 text = QString::fromUtf8(responseData);
+
+            if (obj.contains("done"))
+            {
+                bool done = obj["done"].toBool();
+                if (done)
+                {
+                    reply->deleteLater();
+                    emit responseReceived(text);
+                    emit responseFinished();
+                    return; // Finished receiving response
+                }
+            }
         }
         else
         {
@@ -106,9 +118,8 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
     else
     {
         emit requestError(reply->errorString());
+        reply->deleteLater();
     }
-
-    reply->deleteLater();
 }
 
 bool OllamaInterface::isConnected() const
