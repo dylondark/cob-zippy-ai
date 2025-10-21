@@ -42,34 +42,45 @@ Window {
                 if (win) win.show()
             }
         }
-        TextArea { //THIS IS WHERE THE ACTUAL RESPONSE IS SHOWN
-            id: chatArea
+        Flickable { //THIS IS WHERE THE ACTUAL RESPONSE IS SHOWN - Sage
+            id: chatFlickable
             Layout.fillWidth: true
             Layout.fillHeight: true
-            readOnly: true
-            wrapMode: TextArea.Wrap
-            color: "white"
-            background: Rectangle {
-            //used for testing purposes -Sage color: "red"
-            color: "#00000033"
+            clip: true // This keeps the text within the chat area!! - Sage
+            contentHeight: chatArea.implicitHeight
+            contentWidth: width
+
+            Rectangle { //Rectangle where chat is shown. Grows as more text is added -Sage
+                width: chatFlickable.contentWidth
+                height: chatFlickable.contentHeight
+                color: "#00000033"
                 radius: 5
             }
-            Connections {
-                target: controller
-                function onGenerateFinished(response) {
-                    chatArea.text += response //removed append as it was making a new line - Sage
-                    chatArea.cursorPosition = chatArea.length
+
+            TextEdit {
+                id: chatArea
+                width: chatFlickable.width
+                height: implicitHeight
+                readOnly: true
+                wrapMode: TextEdit.Wrap
+                color: "white"
+                Connections {
+                    target: controller
+                    function onGenerateFinished(response) {
+                        chatArea.text += response
+                        chatArea.cursorPosition = chatArea.length
+                    }
                 }
             }
         }
-       // Image {
-       //     id: zippyImage
-      //      source: "qrc:/images/zippy_photo.png"
-      //      Layout.preferredWidth: 150
-      //      Layout.preferredHeight: 150
-      //      Layout.alignment: Qt.AlignHCenter
-     //       fillMode: Image.PreserveAspectFit
-      //  }
+        // Image {
+        //     id: zippyImage
+        //      source: "qrc:/images/zippy_photo.png"
+        //      Layout.preferredWidth: 150
+        //      Layout.preferredHeight: 150
+        //      Layout.alignment: Qt.AlignHCenter
+        //       fillMode: Image.PreserveAspectFit
+        //  }
 
         Rectangle {
             id: inputBar
