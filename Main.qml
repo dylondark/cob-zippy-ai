@@ -69,7 +69,8 @@ Window {
             Connections {
                 target: controller
                 function onGenerateFinished(response) {
-                    chatArea.append("Model: " + response)
+                    chatArea.text += response //removed append as it was making a new line - Sage
+                    chatArea.cursorPosition = chatArea.length
                 }
             }
         }
@@ -94,19 +95,17 @@ Window {
                     placeholderText: "Ask Zippy anything..."
                     font.pixelSize: 22
                     color: "white"
-
-
                     activeFocusOnPress: true
-
                     background: Rectangle {
                         color: "#3c4049"
                         border.color: "steelblue"
                         radius: 8
                     }
-
                     onAccepted: {
                         if (inputField.text.trim() !== "") {
-                            chatArea.append("User: " + inputField.text)
+
+                            chatArea.append("User: " + inputField.text) // Repeats user text
+                            chatArea.text += "Model: " // This should only add Model once. We can change this to Zippy eventually -Sage
                             controller.generate(inputField.text)
                             inputField.text = ""
                         }
@@ -123,7 +122,8 @@ Window {
 
                     onClicked: {
                         if (inputField.text.trim() !== "") {
-                            chatArea.append("User: " + inputField.text)
+                            chatArea.append("User: " + inputField.text) // Repeats user text
+                            chatArea.text += "Model: " //This should only add Model once. We can change this to Zippy eventually -Sage
                             controller.generate(inputField.text)
                             inputField.text = ""
                         }
