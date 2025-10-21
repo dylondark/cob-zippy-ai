@@ -49,6 +49,9 @@ Window {
             clip: true // This keeps the text within the chat area!! - Sage
             contentHeight: chatArea.implicitHeight
             contentWidth: width
+            ScrollBar.vertical: ScrollBar { // THIS IS THE SCROLLBAR - Sage
+                policy: ScrollBar.AsNeeded
+            }
 
             Rectangle { //Rectangle where chat is shown. Grows as more text is added -Sage
                 width: chatFlickable.contentWidth
@@ -56,6 +59,7 @@ Window {
                 color: "#00000033"
                 radius: 5
             }
+
 
             TextEdit {
                 id: chatArea
