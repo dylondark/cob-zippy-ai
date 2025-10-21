@@ -42,30 +42,18 @@ Window {
                 if (win) win.show()
             }
         }
-
-        Image {
-            id: zippyImage
-            source: "qrc:/images/zippy_photo.png"
-            Layout.preferredWidth: 150
-            Layout.preferredHeight: 150
-            Layout.alignment: Qt.AlignHCenter
-            fillMode: Image.PreserveAspectFit
-        }
-
-
-        TextArea {
+        TextArea { //THIS IS WHERE THE ACTUAL RESPONSE IS SHOWN
             id: chatArea
             Layout.fillWidth: true
             Layout.fillHeight: true
             readOnly: true
             wrapMode: TextArea.Wrap
-
             color: "white"
             background: Rectangle {
-                color: "#00000033"
+            //used for testing purposes -Sage color: "red"
+            color: "#00000033"
                 radius: 5
             }
-
             Connections {
                 target: controller
                 function onGenerateFinished(response) {
@@ -74,6 +62,14 @@ Window {
                 }
             }
         }
+       // Image {
+       //     id: zippyImage
+      //      source: "qrc:/images/zippy_photo.png"
+      //      Layout.preferredWidth: 150
+      //      Layout.preferredHeight: 150
+      //      Layout.alignment: Qt.AlignHCenter
+     //       fillMode: Image.PreserveAspectFit
+      //  }
 
         Rectangle {
             id: inputBar
@@ -114,6 +110,7 @@ Window {
                     onClicked: {
                         if (inputField.text.trim() !== "") {
                             chatArea.append("User: " + inputField.text) // Repeats user text
+                            chatArea.append("")
                             chatArea.text += "Model: " //This should only add Model once. We can change this to Zippy eventually -Sage
                             controller.generate(inputField.text)
                             inputField.text = ""
