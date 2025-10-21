@@ -101,15 +101,6 @@ Window {
                         border.color: "steelblue"
                         radius: 8
                     }
-                    onAccepted: {
-                        if (inputField.text.trim() !== "") {
-
-                            chatArea.append("User: " + inputField.text) // Repeats user text
-                            chatArea.text += "Model: " // This should only add Model once. We can change this to Zippy eventually -Sage
-                            controller.generate(inputField.text)
-                            inputField.text = ""
-                        }
-                    }
                 }
 
                 Button {
