@@ -2,7 +2,7 @@
 #include <iostream>
 
 ProgramController::ProgramController(QObject *parent)
-    : QObject(parent), ollama("http://localhost:11434", "gemma3:4b")
+    : QObject(parent), ollama("http://localhost:11434", "gemma3:4b"), currentGenerateStatus(Error)
 {
     connect(&ollama, &OllamaInterface::responseReceived, this, &ProgramController::onGenerateFinished);
 }
@@ -75,4 +75,18 @@ void ProgramController::onGenerateFinished(QString response)
 {
     // connect this in QML to get the response
     emit generateFinished(response);
+}
+
+ProgramController::GenerateStatus ProgramController::getGenerateStatus() const
+{
+    return currentGenerateStatus;
+}
+
+void ProgramController::setGenerateStatus(GenerateStatus newStatus)
+{
+    if (currentGenerateStatus != newStatus)
+    {
+        currentGenerateStatus = newStatus;
+        emit generateStatusChanged();
+    }
 }

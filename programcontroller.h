@@ -47,10 +47,23 @@ public:
     */
     Q_INVOKABLE bool getOllamaStatus();
 
+    enum GenerateStatus
+    {
+        Idle,
+        Generating,
+        Finished,
+        Error
+    };
+    Q_ENUM(GenerateStatus)
+
     /*
         Prompt the model and begin waiting on response.
     */
     Q_INVOKABLE void generate(const QString& prompt);
+
+    Q_INVOKABLE GenerateStatus getGenerateStatus() const;
+
+    Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
 
 signals:
     /*
@@ -63,6 +76,11 @@ signals:
     */
     void promptParserError(QString response);
 
+    /*
+        Signal to be emitted when the generate status changes.
+    */
+    void generateStatusChanged();
+
 private slots:
     /*
         Slot to be called when Ollama finishes generating a response.
@@ -72,6 +90,10 @@ private slots:
 
 private:
     OllamaInterface ollama;
+
+    GenerateStatus currentGenerateStatus;
+
+    void setGenerateStatus(GenerateStatus);
 };
 
 #endif // PROGRAMCONTROLLER_H
