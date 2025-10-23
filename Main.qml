@@ -107,6 +107,9 @@ Window {
                     font.pixelSize: 22
                     color: "white"
                     activeFocusOnPress: true
+                    onAccepted: {
+                        sendButton.clicked()
+                    }
                     background: Rectangle {
                         color: "#3c4049"
                         border.color: "steelblue"
