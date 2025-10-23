@@ -132,6 +132,7 @@ Window {
                             chatArea.text += "Model: " //This should only add Model once. We can change this to Zippy eventually -Sage
                             controller.generate(inputField.text)
                             inputField.text = ""
+                            chatListView.forceActiveFocus()
                         }
                     }
                 }
