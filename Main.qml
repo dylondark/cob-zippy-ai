@@ -19,6 +19,8 @@ Window {
         id: mainLayout
         spacing: 10
 
+        // This property tracks if the model is busy
+        property bool isGenerating: false
 
         anchors.top: parent.top
         anchors.left: parent.left
@@ -68,23 +70,25 @@ Window {
                 readOnly: true
                 wrapMode: TextEdit.Wrap
                 color: "white"
+
+                // --- CORRECTED CONNECTIONS ---
                 Connections {
-                    target: controller
+                    target: controller // 'controller' is the QML ID for your ProgramController
+
+                    // 1. This signal appends text chunks as they arrive
                     function onGenerateFinished(response) {
                         chatArea.text += response
                         chatArea.cursorPosition = chatArea.length
                     }
+
+                    // 2. This signal fires ONCE when the stream is complete
+                    //    (This matches the 'streamFinished' signal you added in C++)
+                    function onStreamFinished() {
+                        mainLayout.isGenerating = false // Re-enable input
+                    }
                 }
             }
         }
-        // Image {
-        //     id: zippyImage
-        //      source: "qrc:/images/zippy_photo.png"
-        //      Layout.preferredWidth: 150
-        //      Layout.preferredHeight: 150
-        //      Layout.alignment: Qt.AlignHCenter
-        //       fillMode: Image.PreserveAspectFit
-        //  }
 
         Rectangle {
             id: inputBar
@@ -103,11 +107,16 @@ Window {
                     id: inputField
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+
+                    // Disable field while model is generating
+                    enabled: !mainLayout.isGenerating
+
                     placeholderText: "Ask Zippy anything..."
                     font.pixelSize: 22
                     color: "white"
                     activeFocusOnPress: true
                     onAccepted: {
+                        // This won't fire if 'enabled' is false
                         sendButton.clicked()
                     }
                     background: Rectangle {
@@ -120,19 +129,29 @@ Window {
                 Button {
                     id: sendButton
                     text: "Send"
+
+                    // Disable button while model is generating
+                    enabled: !mainLayout.isGenerating
+
                     Layout.fillHeight: true
                     Layout.minimumWidth: 80
                     font.pixelSize: 22
                     font.bold: true
 
+                    // --- CORRECTED ONCLICKED HANDLER ---
                     onClicked: {
                         if (inputField.text.trim() !== "") {
-                            chatArea.append("User: " + inputField.text) // Repeats user text
+                            // 1. Disable inputs
+                            mainLayout.isGenerating = true
+
+                            chatArea.append("User: " + inputField.text)
                             chatArea.append("")
-                            chatArea.text += "Model: " //This should only add Model once. We can change this to Zippy eventually -Sage
+                            chatArea.text += "Model: "
                             controller.generate(inputField.text)
                             inputField.text = ""
-                            chatListView.forceActiveFocus()
+
+                            // 2. Force focus away from input to hide keyboard
+                            chatFlickable.forceActiveFocus()
                         }
                     }
                 }

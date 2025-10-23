@@ -70,6 +70,7 @@ signals:
         Signal to be emitted when Ollama finishes generating a response to pass the response on to QML.
     */
     void generateFinished(QString response);
+    void streamFinished();
 
     /*
         Signal to be emitted when the response from Ollama could not be parsed.
@@ -87,6 +88,7 @@ private slots:
         Decodes the output and then invokes abc2midi to convert the output to a MIDI file.
     */
     void onGenerateFinished(QString response);
+    void onStreamFinished();
 
 private:
     OllamaInterface ollama;

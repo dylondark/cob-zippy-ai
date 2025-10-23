@@ -5,6 +5,8 @@ ProgramController::ProgramController(QObject *parent)
     : QObject(parent), ollama("http://localhost:11434", "gemma3:4b"), currentGenerateStatus(Error)
 {
     connect(&ollama, &OllamaInterface::responseReceived, this, &ProgramController::onGenerateFinished);
+    connect(&ollama, &OllamaInterface::responseFinished, this, &ProgramController::onStreamFinished);
+    // --- END OF NEW CODE ---
 }
 
 /*
@@ -81,7 +83,11 @@ ProgramController::GenerateStatus ProgramController::getGenerateStatus() const
 {
     return currentGenerateStatus;
 }
-
+void ProgramController::onStreamFinished()
+{
+    // This emits the new signal for QML to hear
+    emit streamFinished();
+}
 void ProgramController::setGenerateStatus(GenerateStatus newStatus)
 {
     if (currentGenerateStatus != newStatus)
@@ -89,4 +95,5 @@ void ProgramController::setGenerateStatus(GenerateStatus newStatus)
         currentGenerateStatus = newStatus;
         emit generateStatusChanged();
     }
+
 }
