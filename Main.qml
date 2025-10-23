@@ -71,18 +71,17 @@ Window {
                 wrapMode: TextEdit.Wrap
                 color: "white"
 
-                // --- CORRECTED CONNECTIONS ---
-                Connections {
-                    target: controller // 'controller' is the QML ID for your ProgramController
 
-                    // 1. This signal appends text chunks as they arrive
+                Connections {
+                    target: controller
+
+
                     function onGenerateFinished(response) {
                         chatArea.text += response
                         chatArea.cursorPosition = chatArea.length
                     }
 
-                    // 2. This signal fires ONCE when the stream is complete
-                    //    (This matches the 'streamFinished' signal you added in C++)
+
                     function onStreamFinished() {
                         mainLayout.isGenerating = false // Re-enable input
                     }
@@ -108,7 +107,7 @@ Window {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
-                    // Disable field while model is generating
+                    //Disables text while Zippy is generating
                     enabled: !mainLayout.isGenerating
 
                     placeholderText: "Ask Zippy anything..."
@@ -116,7 +115,7 @@ Window {
                     color: "white"
                     activeFocusOnPress: true
                     onAccepted: {
-                        // This won't fire if 'enabled' is false
+                        // Disables button while enabled is false
                         sendButton.clicked()
                     }
                     background: Rectangle {
@@ -130,7 +129,7 @@ Window {
                     id: sendButton
                     text: "Send"
 
-                    // Disable button while model is generating
+                    // Disables button while Zippy is generating
                     enabled: !mainLayout.isGenerating
 
                     Layout.fillHeight: true
@@ -138,10 +137,9 @@ Window {
                     font.pixelSize: 22
                     font.bold: true
 
-                    // --- CORRECTED ONCLICKED HANDLER ---
                     onClicked: {
                         if (inputField.text.trim() !== "") {
-                            // 1. Disable inputs
+                            // Disabling Inputs
                             mainLayout.isGenerating = true
 
                             chatArea.append("User: " + inputField.text)
@@ -150,7 +148,7 @@ Window {
                             controller.generate(inputField.text)
                             inputField.text = ""
 
-                            // 2. Force focus away from input to hide keyboard
+                            // Hides keyboards
                             chatFlickable.forceActiveFocus()
                         }
                     }
