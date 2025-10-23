@@ -109,10 +109,10 @@ Window {
 
                     //Disables text while Zippy is generating
                     enabled: !mainLayout.isGenerating
-
+                    color: "white"
                     placeholderText: "Ask Zippy anything..."
                     font.pixelSize: 22
-                    color: "white"
+                    placeholderTextColor: "white"
                     activeFocusOnPress: true
                     onAccepted: {
                         // Disables button while enabled is false
