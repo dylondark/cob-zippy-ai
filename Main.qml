@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.VirtualKeyboard
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -25,7 +24,7 @@ Window {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: window.height - (inputPanel.active ? inputPanel.height : 0)
+        height: window.height // Removed virtual keyboard adjustment
 
         Behavior on height {
             NumberAnimation {
@@ -34,14 +33,96 @@ Window {
             }
         }
 
-        Button {
-            id: configButton
-            text: "Ollama Config"
-            Layout.alignment: Qt.AlignRight
-            onClicked: {
-                const component = Qt.createComponent("OllamaConfig.qml")
-                const win = component.createObject()
-                if (win) win.show()
+        // Top toolbar with buttons and status
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 40
+            spacing: 10
+
+            // Connection status indicator
+            Rectangle {
+                Layout.preferredWidth: 120
+                Layout.fillHeight: true
+                color: "#3c4049"
+                radius: 5
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Rectangle {
+                        width: 10
+                        height: 10
+                        radius: 5
+                        color: controller.getOllamaStatus() ? "#00ff00" : "#ff0000"
+                    }
+
+                    Text {
+                        text: controller.getOllamaStatus() ? "Connected" : "Disconnected"
+                        color: "white"
+                        font.pixelSize: 12
+                    }
+                }
+            }
+
+            // Generate status indicator
+            Rectangle {
+                Layout.preferredWidth: 100
+                Layout.fillHeight: true
+                color: "#3c4049"
+                radius: 5
+                visible: mainLayout.isGenerating
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    // Animated loading indicator
+                    Rectangle {
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: "#4a9eff"
+
+                        SequentialAnimation on opacity {
+                            running: mainLayout.isGenerating
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 1.0; to: 0.3; duration: 500 }
+                            NumberAnimation { from: 0.3; to: 1.0; duration: 500 }
+                        }
+                    }
+
+                    Text {
+                        text: "Thinking..."
+                        color: "white"
+                        font.pixelSize: 12
+                    }
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: clearButton
+                text: "Clear Chat"
+                Layout.preferredWidth: 100
+                onClicked: {
+                    chatArea.text = ""
+                    controller.clearConversation()
+                }
+            }
+
+            Button {
+                id: configButton
+                text: "Config"
+                Layout.preferredWidth: 80
+                onClicked: {
+                    const component = Qt.createComponent("OllamaConfig.qml")
+                    const win = component.createObject()
+                    if (win) win.show()
+                }
             }
         }
         Flickable { //THIS IS WHERE THE ACTUAL RESPONSE IS SHOWN - Sage
@@ -84,6 +165,11 @@ Window {
 
                     function onStreamFinished() {
                         mainLayout.isGenerating = false // Re-enable input
+                    }
+
+                    function onErrorOccurred(errorMessage) {
+                        chatArea.append("\n[Error: " + errorMessage + "]")
+                        mainLayout.isGenerating = false // Re-enable input on error
                     }
                 }
             }
@@ -157,6 +243,9 @@ Window {
         }
     }
 
+    // Virtual Keyboard - Commented out (requires Qt Virtual Keyboard module)
+    // Uncomment this section after installing Qt Virtual Keyboard via Qt Maintenance Tool
+    /*
     InputPanel {
         id: inputPanel
         z: 99
@@ -185,4 +274,5 @@ Window {
             }
         }
     }
+    */
 }

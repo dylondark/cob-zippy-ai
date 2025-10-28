@@ -11,7 +11,7 @@ ApplicationWindow {
     maximumWidth: 400
     maximumHeight: 200
     visible: true
-    title: "llmelody - Ollama Config"
+    title: "Zippy AI - Ollama Config"
     flags: Qt.Window | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
 
     // update ollama status on close

@@ -8,10 +8,17 @@
 #include <QUrl>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <string>
 #include "threadworker.h"
 
 using std::string;
+
+// Structure to hold a message
+struct OllamaMessage {
+    QString role;
+    QString content;
+};
 
 class OllamaInterface : public QObject
 {
@@ -25,6 +32,9 @@ public:
 
     // Send a prompt to the model and receive the result asynchronously
     void sendPrompt(const QString &systemPrompt, const QString &userPrompt);
+
+    // Send a chat conversation with history
+    void sendChat(const QString &systemPrompt, const QList<OllamaMessage> &messages);
 
     bool isConnected() const;
     void setURL(string url);

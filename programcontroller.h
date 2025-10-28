@@ -3,8 +3,16 @@
 
 #include <QObject>
 #include <QString>
+#include <QList>
+#include <QSettings>
 #include <QtQmlIntegration>
 #include "ollamainterface.h"
+
+// Structure to hold a single message in the conversation
+struct Message {
+    QString role;     // "user" or "assistant"
+    QString content;  // The message text
+};
 
 /*
     Serves as the interface to C++ from QML.
@@ -61,6 +69,11 @@ public:
     */
     Q_INVOKABLE void generate(const QString& prompt);
 
+    /*
+        Clear the conversation history.
+    */
+    Q_INVOKABLE void clearConversation();
+
     Q_INVOKABLE GenerateStatus getGenerateStatus() const;
 
     Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
@@ -82,18 +95,36 @@ signals:
     */
     void generateStatusChanged();
 
+    /*
+        Signal to be emitted when an error occurs.
+    */
+    void errorOccurred(QString errorMessage);
+
 private slots:
     /*
         Slot to be called when Ollama finishes generating a response.
-        Decodes the output and then invokes abc2midi to convert the output to a MIDI file.
+        Accumulates streaming chunks.
     */
     void onGenerateFinished(QString response);
     void onStreamFinished();
+    void onRequestError(QString error);
 
 private:
     OllamaInterface ollama;
 
     GenerateStatus currentGenerateStatus;
+
+    // Store conversation history
+    QList<Message> conversationHistory;
+    QString systemPrompt;
+
+    // Buffer to accumulate the current assistant response
+    QString currentResponse;
+
+    // Settings management
+    QSettings settings;
+    void loadSettings();
+    void saveSettings();
 
     void setGenerateStatus(GenerateStatus);
 };
