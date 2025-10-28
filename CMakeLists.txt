@@ -4,7 +4,7 @@ project(cob_zippy_ai VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Network)
+find_package(Qt6 REQUIRED COMPONENTS Quick)
 
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -34,7 +34,7 @@ set_target_properties(appcob_zippy_ai PROPERTIES
 )
 
 target_link_libraries(appcob_zippy_ai
-    PRIVATE Qt6::Quick Qt6::Network
+    PRIVATE Qt6::Quick
 )
 
 include(GNUInstallDirs)
