@@ -8,6 +8,7 @@
 #include <QUrl>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTimer>
 #include <string>
 #include "threadworker.h"
 
@@ -26,6 +27,9 @@ public:
     // Send a prompt to the model and receive the result asynchronously
     void sendPrompt(const QString &systemPrompt, const QString &userPrompt);
 
+    // Cancel the current request
+    void cancelRequest();
+
     bool isConnected() const;
     void setURL(string url);
     string getURL() const;
@@ -41,6 +45,7 @@ signals:
 private slots:
     void onPingReply(QNetworkReply *reply);
     void onPromptReply(QNetworkReply *reply);
+    void flushBuffer();
 
 private:
     bool connected;
@@ -48,8 +53,11 @@ private:
     string model;
 
     QNetworkAccessManager *networkManager;
+    QNetworkReply *currentReply;
     QThread requestThread;
     ThreadWorker worker;
+    QString responseBuffer;
+    QTimer *bufferTimer;
 };
 
 #endif // OLLAMAINTERFACE_H

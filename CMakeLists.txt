@@ -19,6 +19,7 @@ qt_add_qml_module(appcob_zippy_ai
         Main.qml
         SOURCES ollamainterface.h ollamainterface.cpp threadworker.h
         SOURCES programcontroller.h programcontroller.cpp
+        SOURCES websearchinterface.h websearchinterface.cpp
         QML_FILES OllamaConfig.qml
 )
 

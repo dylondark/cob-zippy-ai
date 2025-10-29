@@ -5,6 +5,7 @@
 #include <QString>
 #include <QtQmlIntegration>
 #include "ollamainterface.h"
+#include "websearchinterface.h"
 
 /*
     Serves as the interface to C++ from QML.
@@ -61,6 +62,11 @@ public:
     */
     Q_INVOKABLE void generate(const QString& prompt);
 
+    /*
+        Cancel the current generation.
+    */
+    Q_INVOKABLE void cancelGeneration();
+
     Q_INVOKABLE GenerateStatus getGenerateStatus() const;
 
     Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
@@ -82,6 +88,11 @@ signals:
     */
     void generateStatusChanged();
 
+    /*
+        Signal to be emitted when web search is in progress.
+    */
+    void searchingWeb(QString query);
+
 private slots:
     /*
         Slot to be called when Ollama finishes generating a response.
@@ -89,13 +100,21 @@ private slots:
     */
     void onGenerateFinished(QString response);
     void onStreamFinished();
+    void onRequestError(QString error);
+    void onSearchFinished(QString results);
+    void onSearchError(QString error);
 
 private:
     OllamaInterface ollama;
+    WebSearchInterface webSearch;
 
     GenerateStatus currentGenerateStatus;
+    QString currentPrompt;
+    bool isSearchEnabled;
 
     void setGenerateStatus(GenerateStatus);
+    bool shouldSearch(const QString& prompt);
+    QString convertMarkdownToHtml(const QString& text);
 };
 
 #endif // PROGRAMCONTROLLER_H

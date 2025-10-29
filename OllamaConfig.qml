@@ -17,7 +17,6 @@ ApplicationWindow {
     // update ollama status on close
     onClosing: {
         controller.pingOllama();
-        root.updateOllamaStatus();
     }
 
     Pane {
@@ -60,7 +59,7 @@ ApplicationWindow {
             }
             TextField {
                 id: modelField
-                text: "gemma3:4b"
+                text: "gemma3:1b"
                 Layout.fillWidth: true
             }
         }

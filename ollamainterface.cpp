@@ -7,9 +7,15 @@
 #include <QJsonObject>
 
 OllamaInterface::OllamaInterface(string url, string model)
-    : connected(false), url(std::move(url)), model(std::move(model))
+    : connected(false), url(std::move(url)), model(std::move(model)), currentReply(nullptr)
 {
     networkManager = new QNetworkAccessManager(this);
+
+    // Create a timer for buffering responses
+    bufferTimer = new QTimer(this);
+    bufferTimer->setInterval(50); // Flush buffer every 50ms
+    bufferTimer->setSingleShot(true);
+    connect(bufferTimer, &QTimer::timeout, this, &OllamaInterface::flushBuffer);
 }
 
 OllamaInterface::~OllamaInterface()
@@ -48,6 +54,10 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
         return;
     }
 
+    // Clear any existing buffer
+    responseBuffer.clear();
+    bufferTimer->stop();
+
     QUrl endpoint(QString::fromStdString(url + "/api/generate"));
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -58,8 +68,19 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     json["prompt"] = userPrompt;
     json["stream"] = true;  // Can be set to true for streaming responses
 
-    QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { onPromptReply(reply); });
+    currentReply = networkManager->post(request, QJsonDocument(json).toJson());
+    connect(currentReply, &QNetworkReply::readyRead, this, [this]() { onPromptReply(currentReply); });
+}
+
+void OllamaInterface::cancelRequest()
+{
+    if (currentReply != nullptr)
+    {
+        currentReply->abort();
+        currentReply->deleteLater();
+        currentReply = nullptr;
+        emit responseFinished();
+    }
 }
 
 void OllamaInterface::onPingReply(QNetworkReply *reply)
@@ -102,7 +123,17 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                 if (done)
                 {
                     reply->deleteLater();
-                    emit responseReceived(text);
+                    currentReply = nullptr;
+                    // Flush any remaining buffered text
+                    if (!responseBuffer.isEmpty())
+                    {
+                        emit responseReceived(responseBuffer);
+                        responseBuffer.clear();
+                    }
+                    if (!text.isEmpty())
+                    {
+                        emit responseReceived(text);
+                    }
                     emit responseFinished();
                     return; // Finished receiving response
                 }
@@ -113,12 +144,26 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
             text = QString::fromUtf8(responseData);
         }
 
-        emit responseReceived(text);
+        // Buffer the response text
+        responseBuffer += text;
+
+        // Restart the timer - will flush after 50ms of no new data
+        bufferTimer->start();
     }
     else
     {
+        currentReply = nullptr;
         emit requestError(reply->errorString());
         reply->deleteLater();
+    }
+}
+
+void OllamaInterface::flushBuffer()
+{
+    if (!responseBuffer.isEmpty())
+    {
+        emit responseReceived(responseBuffer);
+        responseBuffer.clear();
     }
 }
 
