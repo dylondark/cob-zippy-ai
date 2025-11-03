@@ -1,0 +1,33 @@
+# University of Akron College of Business - Knowledge Base
+
+## General Information
+The College of Business at the University of Akron offers undergraduate and graduate programs in business administration, accounting, finance, marketing, and management.
+
+## Programs
+- Bachelor of Business Administration (BBA)
+- Master of Business Administration (MBA)
+- Master of Accountancy (MAcc)
+- Ph.D. in Business Administration
+
+## Location
+The College of Business is located on the main campus of the University of Akron in Akron, Ohio.
+
+## Accreditation
+The College of Business is accredited by AACSB International (The Association to Advance Collegiate Schools of Business).
+
+## Contact Information
+University of Akron College of Business
+259 S. Broadway St.
+Akron, OH 44325-4805
+
+## Important Notes
+- For current staff information, events, and schedules, please visit the official website or contact the college directly
+- Dean information and leadership may change - always verify with official sources
+- Event schedules and dates should be confirmed through official university channels
+
+---
+# INSTRUCTIONS FOR AI
+- Only use information from this file if you are certain it is accurate
+- If information is not in this file, say you don't have that information
+- Never make up names, dates, or facts that are not explicitly written here
+- For current events, schedules, or staff information not listed here, suggest contacting the college directly or checking their website

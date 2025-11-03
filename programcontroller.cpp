@@ -76,7 +76,47 @@ void ProgramController::generate(const QString& prompt)
     // Add user message to conversation history
     conversationHistory.append(qMakePair(QString("user"), prompt));
 
-    // Check if we should perform a web search first
+    // Priority 1: Try to find answer in local knowledge base
+    QString localKnowledgeResult = localKnowledge.search(prompt);
+
+    if (!localKnowledgeResult.isEmpty())
+    {
+        // We found relevant information in local knowledge base
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        QString currentDate = currentDateTime.toString("MMMM d, yyyy");
+        QString currentDayOfWeek = currentDateTime.toString("dddd");
+
+        QString systemPrompt = "You are Zippy, a helpful AI assistant for the University of Akron College of Business. "
+                               "IMPORTANT: Today's date is " + currentDayOfWeek + ", " + currentDate + ".\n\n"
+                               "LOCAL KNOWLEDGE BASE:\n" + localKnowledgeResult + "\n\n"
+                               "CRITICAL RULES YOU MUST FOLLOW:\n"
+                               "1. ONLY use information from the LOCAL KNOWLEDGE BASE above\n"
+                               "2. NEVER make up names, dates, events, or facts not in the knowledge base\n"
+                               "3. NEVER provide URLs or links unless they are in the LOCAL KNOWLEDGE BASE\n"
+                               "4. If the knowledge base doesn't contain the answer, say: "
+                               "\"I don't have that specific information. Please contact the University of Akron College of Business directly or visit their official website.\"\n\n"
+                               "5. Pay attention to notes in the knowledge base about verifying information\n\n"
+                               "FORMATTING RULES:\n"
+                               "- Use HTML tags for formatting: <b>text</b> for bold, <i>text</i> for italic\n"
+                               "- For bullet points, use: <br>• Item 1<br>• Item 2\n"
+                               "- Use <br> for line breaks between paragraphs\n"
+                               "- Never use markdown (no **, -, #, etc.)";
+
+        // Build messages array from conversation history
+        QJsonArray messages;
+        for (const auto& historyItem : conversationHistory)
+        {
+            QJsonObject message;
+            message["role"] = historyItem.first;
+            message["content"] = historyItem.second;
+            messages.append(message);
+        }
+
+        ollama.sendChat(systemPrompt, messages);
+        return;
+    }
+
+    // Priority 2: Check if we should perform a web search
     if (isSearchEnabled && shouldSearch(prompt))
     {
         emit searchingWeb(prompt);
@@ -84,7 +124,7 @@ void ProgramController::generate(const QString& prompt)
     }
     else
     {
-        // Get current date even for non-search queries
+        // Priority 3: No local knowledge and no web search needed - use general knowledge
         QDateTime currentDateTime = QDateTime::currentDateTime();
         QString currentDate = currentDateTime.toString("MMMM d, yyyy");
         QString currentDayOfWeek = currentDateTime.toString("dddd");

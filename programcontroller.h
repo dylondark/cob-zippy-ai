@@ -6,6 +6,7 @@
 #include <QtQmlIntegration>
 #include "ollamainterface.h"
 #include "websearchinterface.h"
+#include "localknowledgeinterface.h"
 
 /*
     Serves as the interface to C++ from QML.
@@ -112,6 +113,7 @@ private slots:
 private:
     OllamaInterface ollama;
     WebSearchInterface webSearch;
+    LocalKnowledgeInterface localKnowledge;
 
     GenerateStatus currentGenerateStatus;
     QString currentPrompt;
