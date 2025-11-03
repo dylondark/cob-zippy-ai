@@ -1,6 +1,8 @@
 #include "programcontroller.h"
 #include <QDateTime>
 #include <QRegularExpression>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <iostream>
 
 ProgramController::ProgramController(QObject *parent)
@@ -69,6 +71,10 @@ void ProgramController::generate(const QString& prompt)
 {
     setGenerateStatus(Generating);
     currentPrompt = prompt;
+    currentResponse.clear(); // Clear accumulated response from previous generation
+
+    // Add user message to conversation history
+    conversationHistory.append(qMakePair(QString("user"), prompt));
 
     // Check if we should perform a web search first
     if (isSearchEnabled && shouldSearch(prompt))
@@ -95,7 +101,17 @@ void ProgramController::generate(const QString& prompt)
                                "- Structure your response with clear sections and spacing\n"
                                "- Never use markdown (no **, -, #, etc.)";
 
-        ollama.sendPrompt(systemPrompt, prompt);
+        // Build messages array from conversation history
+        QJsonArray messages;
+        for (const auto& historyItem : conversationHistory)
+        {
+            QJsonObject message;
+            message["role"] = historyItem.first;
+            message["content"] = historyItem.second;
+            messages.append(message);
+        }
+
+        ollama.sendChat(systemPrompt, messages);
     }
 }
 
@@ -131,13 +147,27 @@ void ProgramController::cancelGeneration()
 }
 
 /*
+    Clear the conversation history.
+*/
+void ProgramController::clearChat()
+{
+    conversationHistory.clear();
+    currentResponse.clear();
+    currentPrompt.clear();
+}
+
+/*
     Slot to be called when Ollama finishes generating a response.
     Decodes the output and then invokes abc2midi to convert the output to a MIDI file.
 */
 void ProgramController::onGenerateFinished(QString response)
 {
+    // Accumulate the raw response (not formatted) for conversation history
+    currentResponse += response;
+
     // Convert any markdown to HTML before emitting
     QString formattedResponse = convertMarkdownToHtml(response);
+
     emit generateFinished(formattedResponse);
 }
 
@@ -181,6 +211,12 @@ ProgramController::GenerateStatus ProgramController::getGenerateStatus() const
 }
 void ProgramController::onStreamFinished()
 {
+    // Add the assistant's complete response to conversation history
+    if (!currentResponse.isEmpty())
+    {
+        conversationHistory.append(qMakePair(QString("assistant"), currentResponse));
+    }
+
     setGenerateStatus(Finished);
     // This emits the new signal for QML to hear
     emit streamFinished();
@@ -211,7 +247,6 @@ void ProgramController::onSearchFinished(QString results)
                            "CRITICAL: Pay attention to the current date provided below. Use this date when answering questions about 'today', 'this week', 'upcoming', etc. "
                            "Do NOT use any date from your training data. ONLY use the current date provided here.\n\n"
                            "Context Information:\n" + results + "\n\n"
-                           "User's Question: " + currentPrompt + "\n\n"
                            "Instructions:\n"
                            "- Use the CURRENT DATE from the context above\n"
                            "- If asked about events or schedules, acknowledge you need more specific information about College of Business events\n"
@@ -225,7 +260,17 @@ void ProgramController::onSearchFinished(QString results)
                            "- Never use markdown (no **, -, #, etc.)\n"
                            "- Keep responses well-organized and easy to read";
 
-    ollama.sendPrompt(systemPrompt, currentPrompt);
+    // Build messages array from conversation history
+    QJsonArray messages;
+    for (const auto& historyItem : conversationHistory)
+    {
+        QJsonObject message;
+        message["role"] = historyItem.first;
+        message["content"] = historyItem.second;
+        messages.append(message);
+    }
+
+    ollama.sendChat(systemPrompt, messages);
 }
 
 void ProgramController::onSearchError(QString error)
@@ -235,5 +280,15 @@ void ProgramController::onSearchError(QString error)
                            "Help users as much as you can with the information you know about the College. "
                            "Note: Web search was unavailable, so provide the best answer you can with your existing knowledge.";
 
-    ollama.sendPrompt(systemPrompt, currentPrompt);
+    // Build messages array from conversation history
+    QJsonArray messages;
+    for (const auto& historyItem : conversationHistory)
+    {
+        QJsonObject message;
+        message["role"] = historyItem.first;
+        message["content"] = historyItem.second;
+        messages.append(message);
+    }
+
+    ollama.sendChat(systemPrompt, messages);
 }

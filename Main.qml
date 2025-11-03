@@ -181,6 +181,7 @@ Window {
                         onClicked: {
                             chatArea.text = ""
                             showChat = false
+                            controller.clearChat()  // Clear conversation history
                         }
                     }
                 }

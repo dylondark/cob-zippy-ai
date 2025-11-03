@@ -72,6 +72,46 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     connect(currentReply, &QNetworkReply::readyRead, this, [this]() { onPromptReply(currentReply); });
 }
 
+void OllamaInterface::sendChat(const QString &systemPrompt, const QJsonArray &messages)
+{
+    if (!connected)
+    {
+        emit requestError("Not connected to Ollama server.");
+        return;
+    }
+
+    // Clear any existing buffer
+    responseBuffer.clear();
+    bufferTimer->stop();
+
+    QUrl endpoint(QString::fromStdString(url + "/api/chat"));
+    QNetworkRequest request(endpoint);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    // Build the messages array with system prompt first
+    QJsonArray allMessages;
+
+    // Add system message
+    QJsonObject systemMessage;
+    systemMessage["role"] = "system";
+    systemMessage["content"] = systemPrompt;
+    allMessages.append(systemMessage);
+
+    // Add conversation history
+    for (const QJsonValue &msg : messages)
+    {
+        allMessages.append(msg);
+    }
+
+    QJsonObject json;
+    json["model"] = QString::fromStdString(model);
+    json["messages"] = allMessages;
+    json["stream"] = true;
+
+    currentReply = networkManager->post(request, QJsonDocument(json).toJson());
+    connect(currentReply, &QNetworkReply::readyRead, this, [this]() { onPromptReply(currentReply); });
+}
+
 void OllamaInterface::cancelRequest()
 {
     if (currentReply != nullptr)
@@ -112,10 +152,23 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
         if (jsonResponse.isObject())
         {
             QJsonObject obj = jsonResponse.object();
+
+            // Handle both /api/generate and /api/chat responses
             if (obj.contains("response"))
+            {
+                // /api/generate format
                 text = obj["response"].toString();
+            }
+            else if (obj.contains("message"))
+            {
+                // /api/chat format
+                QJsonObject message = obj["message"].toObject();
+                text = message["content"].toString();
+            }
             else
+            {
                 text = QString::fromUtf8(responseData);
+            }
 
             if (obj.contains("done"))
             {

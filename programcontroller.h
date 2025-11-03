@@ -67,6 +67,11 @@ public:
     */
     Q_INVOKABLE void cancelGeneration();
 
+    /*
+        Clear the conversation history.
+    */
+    Q_INVOKABLE void clearChat();
+
     Q_INVOKABLE GenerateStatus getGenerateStatus() const;
 
     Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
@@ -110,7 +115,9 @@ private:
 
     GenerateStatus currentGenerateStatus;
     QString currentPrompt;
+    QString currentResponse; // Accumulates the assistant's response during streaming
     bool isSearchEnabled;
+    QList<QPair<QString, QString>> conversationHistory; // Stores (role, content) pairs
 
     void setGenerateStatus(GenerateStatus);
     bool shouldSearch(const QString& prompt);

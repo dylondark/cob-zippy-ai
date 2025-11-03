@@ -8,6 +8,7 @@
 #include <QUrl>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QTimer>
 #include <string>
 #include "threadworker.h"
@@ -26,6 +27,9 @@ public:
 
     // Send a prompt to the model and receive the result asynchronously
     void sendPrompt(const QString &systemPrompt, const QString &userPrompt);
+
+    // Send a chat message with conversation history
+    void sendChat(const QString &systemPrompt, const QJsonArray &messages);
 
     // Cancel the current request
     void cancelRequest();
