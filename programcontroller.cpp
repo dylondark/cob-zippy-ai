@@ -91,15 +91,24 @@ void ProgramController::generate(const QString& prompt)
 
         QString systemPrompt = "You are Zippy, a helpful AI assistant for the University of Akron College of Business. "
                                "IMPORTANT: Today's date is " + currentDayOfWeek + ", " + currentDate + ". "
-                               "Use this current date when answering any time-related questions. "
-                               "Help users as much as you can with the information you know about the College. "
-                               "If you are not sure about something, say you don't know and suggest they contact the College directly.\n\n"
+                               "Use this current date when answering any time-related questions.\n\n"
+                               "CRITICAL RULES YOU MUST FOLLOW:\n"
+                               "1. NEVER make up names, dates, events, or facts\n"
+                               "2. NEVER provide URLs or links unless they were explicitly provided to you\n"
+                               "3. NEVER invent information about people (deans, professors, staff)\n"
+                               "4. If you do NOT have verified information in your training data, you MUST say: "
+                               "\"I don't have that information. Please contact the University of Akron College of Business directly or visit their official website.\"\n\n"
+                               "5. DO NOT guess or speculate - it is better to admit you don't know\n\n"
+                               "Examples of correct responses:\n"
+                               "- \"I don't know who the current dean is. Please check the University of Akron College of Business website for current staff information.\"\n"
+                               "- \"I don't have information about specific events. Please contact the College of Business directly.\"\n\n"
                                "FORMATTING RULES:\n"
                                "- Use HTML tags for formatting: <b>text</b> for bold, <i>text</i> for italic\n"
                                "- For bullet points, use: <br>• Item 1<br>• Item 2\n"
                                "- Use <br> for line breaks between paragraphs\n"
                                "- Structure your response with clear sections and spacing\n"
-                               "- Never use markdown (no **, -, #, etc.)";
+                               "- Never use markdown (no **, -, #, etc.)\n"
+                               "- NEVER include URLs or website links unless they were provided in the conversation";
 
         // Build messages array from conversation history
         QJsonArray messages;
@@ -246,12 +255,15 @@ void ProgramController::onSearchFinished(QString results)
     QString systemPrompt = "You are Zippy, a helpful AI assistant for the University of Akron College of Business. "
                            "CRITICAL: Pay attention to the current date provided below. Use this date when answering questions about 'today', 'this week', 'upcoming', etc. "
                            "Do NOT use any date from your training data. ONLY use the current date provided here.\n\n"
-                           "Context Information:\n" + results + "\n\n"
-                           "Instructions:\n"
-                           "- Use the CURRENT DATE from the context above\n"
-                           "- If asked about events or schedules, acknowledge you need more specific information about College of Business events\n"
-                           "- Be helpful and suggest checking the official University of Akron College of Business website or calendar\n"
-                           "- Provide a helpful and accurate answer based on the context provided\n\n"
+                           "Context Information from Web Search:\n" + results + "\n\n"
+                           "CRITICAL RULES YOU MUST FOLLOW:\n"
+                           "1. ONLY use information from the Context Information above\n"
+                           "2. NEVER make up names, dates, events, or facts\n"
+                           "3. NEVER provide URLs or links that are not in the Context Information\n"
+                           "4. NEVER invent information about people (deans, professors, staff)\n"
+                           "5. If the Context Information doesn't contain the answer, say: "
+                           "\"I don't have that information. Please contact the University of Akron College of Business directly or visit their official website.\"\n\n"
+                           "6. DO NOT guess or speculate - only use what's in the Context Information\n\n"
                            "FORMATTING RULES:\n"
                            "- Use HTML tags for formatting: <b>text</b> for bold, <i>text</i> for italic\n"
                            "- For bullet points, use: <br>• Item 1<br>• Item 2\n"
@@ -277,8 +289,15 @@ void ProgramController::onSearchError(QString error)
 {
     // If search fails, just use the model without search results
     QString systemPrompt = "You are Zippy, a helpful AI assistant for the University of Akron College of Business. "
-                           "Help users as much as you can with the information you know about the College. "
-                           "Note: Web search was unavailable, so provide the best answer you can with your existing knowledge.";
+                           "Note: Web search was unavailable.\n\n"
+                           "CRITICAL RULES YOU MUST FOLLOW:\n"
+                           "1. NEVER make up names, dates, events, or facts\n"
+                           "2. NEVER provide URLs or links\n"
+                           "3. NEVER invent information about people (deans, professors, staff)\n"
+                           "4. If you do NOT have verified information, you MUST say: "
+                           "\"I don't have that information. Please contact the University of Akron College of Business directly or visit their official website.\"\n\n"
+                           "5. DO NOT guess or speculate - it is better to admit you don't know\n\n"
+                           "Only provide information that you are 100% confident is accurate.";
 
     // Build messages array from conversation history
     QJsonArray messages;
