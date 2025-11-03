@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nMajor UI overhaul and feature additions\n\n- Redesigned UI to match modern Zippy AI branding with dark gradient theme\n- Added web search integration with DuckDuckGo API for real-time information\n- Implemented intelligent search triggering for event/schedule queries\n- Added current date/time context to all AI responses\n- Fixed bug fixes: undefined reference in OllamaConfig, keyboard behavior, response buffering\n- Implemented complete status tracking system (Idle/Generating/Finished/Error)\n- Added comprehensive error handling with user-friendly error messages\n- Implemented response cancellation functionality\n- Added markdown-to-HTML converter for proper text formatting\n- Changed default model from gemma3:4b to gemma3:1b\n- Made window resizable (800x600 default, min 640x480)\n- Added clear chat button and improved UI controls\n- Fixed streaming response display with 50ms buffering for better readability\n- Virtual keyboard now only appears on explicit keyboard button click\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
