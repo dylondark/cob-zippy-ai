@@ -2,12 +2,23 @@
 #include <QUrlQuery>
 #include <QUrl>
 #include <QDateTime>
+#include <QFile>
+#include <QTextStream>
 #include <iostream>
 
 WebSearchInterface::WebSearchInterface(QObject *parent)
     : QObject(parent)
 {
     networkManager = new QNetworkAccessManager(this);
+
+    // Try to load API key from file
+    QFile keyFile("ollama_api_key.txt");
+    if (keyFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&keyFile);
+        apiKey = in.readLine().trimmed();
+        keyFile.close();
+    }
 }
 
 WebSearchInterface::~WebSearchInterface()
@@ -15,31 +26,42 @@ WebSearchInterface::~WebSearchInterface()
     delete networkManager;
 }
 
+void WebSearchInterface::setApiKey(const QString &key)
+{
+    apiKey = key;
+}
+
+QString WebSearchInterface::getApiKey() const
+{
+    return apiKey;
+}
+
 void WebSearchInterface::search(const QString &query)
 {
-    // Get current date/time information
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-    QString currentDate = currentDateTime.toString("MMMM d, yyyy");
-    QString currentDayOfWeek = currentDateTime.toString("dddd");
+    // Check if API key is available
+    if (apiKey.isEmpty())
+    {
+        emit searchError("Ollama API key not configured. Please add your API key to ollama_api_key.txt");
+        return;
+    }
 
-    // Build context-rich search results with current date
-    QString searchContext = "Current Date: " + currentDate + " (" + currentDayOfWeek + ")\n";
-    searchContext += "Query: " + query + "\n\n";
-
-    // Using DuckDuckGo Instant Answer API (free, no API key required)
-    QUrl url("https://api.duckduckgo.com/");
-    QUrlQuery urlQuery;
-    urlQuery.addQueryItem("q", "University of Akron " + query);
-    urlQuery.addQueryItem("format", "json");
-    urlQuery.addQueryItem("no_html", "1");
-    urlQuery.addQueryItem("skip_disambig", "1");
-    url.setQuery(urlQuery);
+    // Use Ollama's web search API
+    QUrl url("https://ollama.com/api/web_search");
 
     QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::UserAgentHeader, "ZippyAI/1.0");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", QString("Bearer %1").arg(apiKey).toUtf8());
 
-    QNetworkReply *reply = networkManager->get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply, searchContext]() {
+    // Build the JSON request body
+    QJsonObject jsonBody;
+    jsonBody["query"] = "University of Akron College of Business " + query;
+    jsonBody["max_results"] = 5;
+
+    QJsonDocument doc(jsonBody);
+    QByteArray data = doc.toJson();
+
+    QNetworkReply *reply = networkManager->post(request, data);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         onSearchReply(reply);
     });
 }
@@ -63,65 +85,56 @@ void WebSearchInterface::onSearchReply(QNetworkReply *reply)
         if (jsonDoc.isObject())
         {
             QJsonObject obj = jsonDoc.object();
+            QJsonArray resultsArray = obj["results"].toArray();
 
-            // Get the abstract (main answer)
-            QString abstract = obj["Abstract"].toString();
-            QString abstractText = obj["AbstractText"].toString();
-            QString abstractSource = obj["AbstractSource"].toString();
-            QString abstractURL = obj["AbstractURL"].toString();
-
-            if (!abstractText.isEmpty())
+            if (!resultsArray.isEmpty())
             {
-                results += "Web Search Results:\n";
-                results += "Summary: " + abstractText + "\n";
-                if (!abstractSource.isEmpty())
-                    results += "Source: " + abstractSource + "\n";
-                if (!abstractURL.isEmpty())
-                    results += "URL: " + abstractURL + "\n";
-            }
+                results += "Web Search Results:\n\n";
 
-            // Get related topics
-            QJsonArray relatedTopics = obj["RelatedTopics"].toArray();
-            if (!relatedTopics.isEmpty() && abstractText.isEmpty())
-            {
-                results += "Related Information:\n";
-                int count = 0;
-                for (const QJsonValue &value : relatedTopics)
+                for (int i = 0; i < resultsArray.size() && i < 5; ++i)
                 {
-                    if (count >= 3) break; // Limit to 3 results
+                    QJsonObject result = resultsArray[i].toObject();
+                    QString title = result["title"].toString();
+                    QString url = result["url"].toString();
+                    QString content = result["content"].toString();
 
-                    QJsonObject topic = value.toObject();
-                    QString text = topic["Text"].toString();
-                    QString firstURL = topic["FirstURL"].toString();
-
-                    if (!text.isEmpty())
-                    {
-                        results += "- " + text + "\n";
-                        if (!firstURL.isEmpty())
-                            results += "  URL: " + firstURL + "\n";
-                        count++;
-                    }
+                    results += QString("Result %1:\n").arg(i + 1);
+                    if (!title.isEmpty())
+                        results += "Title: " + title + "\n";
+                    if (!content.isEmpty())
+                        results += "Content: " + content + "\n";
+                    if (!url.isEmpty())
+                        results += "URL: " + url + "\n";
+                    results += "\n";
                 }
-            }
 
-            if (abstractText.isEmpty() && relatedTopics.isEmpty())
+                emit searchFinished(results);
+            }
+            else
             {
-                results += "Note: Limited search results available. Using current date context above.\n";
+                // No results found
+                results += "Note: Web search returned no specific results. Using current date context above.\n";
+                emit searchFinished(results);
             }
-
-            emit searchFinished(results);
         }
         else
         {
-            // Even if search fails, send date context
-            results += "Note: Web search returned no specific results. Use the current date above to provide context.\n";
+            // Invalid JSON response
+            results += "Note: Web search returned invalid response. Using current date context above.\n";
             emit searchFinished(results);
         }
     }
     else
     {
-        // Even on error, send date context
-        results += "Note: Web search unavailable. Use the current date above to provide context.\n";
+        // Network error - emit the error message
+        QString errorMsg = "Web search error: " + reply->errorString();
+        if (reply->error() == QNetworkReply::AuthenticationRequiredError)
+        {
+            errorMsg = "Web search authentication failed. Please check your Ollama API key in ollama_api_key.txt";
+        }
+
+        // Still provide date context even on error
+        results += "Note: " + errorMsg + "\nUsing current date context above.\n";
         emit searchFinished(results);
     }
 

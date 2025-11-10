@@ -19,6 +19,12 @@ public:
     // Search the web and return results
     void search(const QString &query);
 
+    // Set the Ollama API key
+    void setApiKey(const QString &key);
+
+    // Get the current API key
+    QString getApiKey() const;
+
 signals:
     void searchFinished(QString results);
     void searchError(QString error);
@@ -28,6 +34,7 @@ private slots:
 
 private:
     QNetworkAccessManager *networkManager;
+    QString apiKey;
     QString formatResults(const QJsonArray &results);
 };
 
