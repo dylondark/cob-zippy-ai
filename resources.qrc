@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>images/ZippyAILogo.png</file>
         <file>images/ZippyAvatar.png</file>
+        <file>images/floor1_map.png</file>
         <file>qml/BuildingMaps.qml</file>
         <file>qml/Events.qml</file>
         <file>qml/Contact.qml</file>

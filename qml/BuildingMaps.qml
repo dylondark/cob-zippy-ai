@@ -40,19 +40,41 @@ Page {
             radius: 15
             border.color: "#d0d0d0"
 
-            Image {
-                anchors.centerIn: parent
-                // source: "qrc:/images/example.png"
-                source: ""
-                fillMode: Image.PreserveAspectFit
+            StackLayout {
+                anchors.fill: parent
+                anchors.margins: 10
+                currentIndex: mapTabs.currentIndex
 
-                // Fallback text if no image
+                // Floor 1 Map
+                Image {
+                    source: "qrc:/images/floor1_map.png"
+                    fillMode: Image.PreserveAspectFit
+
+                    Text {
+                        anchors.centerIn: parent
+                        visible: parent.status !== Image.Ready
+                        text: "Floor 1 Map\n(Image not found)"
+                        horizontalAlignment: Text.AlignHCenter
+                        color: "#888"
+                    }
+                }
+
+                // Floor 2 Map (Placeholder)
                 Text {
-                    anchors.centerIn: parent
-                    visible: parent.status !== Image.Ready
-                    text: "Map Image Placeholder\n" + mapTabs.currentItem.text
+                    text: "Floor 2 Map\n(Coming Soon)"
                     horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
                     color: "#888"
+                    font.pixelSize: 18
+                }
+
+                // Floor 3 Map (Placeholder)
+                Text {
+                    text: "Floor 3 Map\n(Coming Soon)"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    color: "#888"
+                    font.pixelSize: 18
                 }
             }
         }
