@@ -30,6 +30,9 @@ public:
     // request web search from ollama api
     void requestWebSearch(const QString &query, const QString &apiKey);
 
+    // request web fetch from ollama api
+    void requestWebFetch(const QString &url, const QString &apiKey);
+
     bool isConnected() const;
     void setURL(string url);
     string getURL() const;
@@ -50,6 +53,7 @@ private slots:
     void onPingReply(QNetworkReply *reply);
     void onPromptReply(QNetworkReply *reply);
     void receiveWebSearch(QNetworkReply *reply);
+    void receiveWebFetch(QNetworkReply *reply);
 
 private:
     void addMessageToHistory(QString role, QString content);
