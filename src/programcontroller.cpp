@@ -185,6 +185,10 @@ Example responses:
 "Room 147: Turn around from the big screen. Turn right into the hallway after Room 121. Walk to the T-junction and turn left. Room 147 is straight ahead."
 
 If you are not sure about something unrelated to navigation, say you don't know and suggest they contact the College directly.
+
+OTHER INFORMATION FOR YOUR REFERENCE:
+- The phone number for the College of Business is 330-972-7042 for the undergraduate office and 330-972-7043 for the graduate office.
+- The current interim dean of the College of Business is James B. Thomson, although as of Jan 3. 2026 Dr. Terry Daugherty will take over as dean.
 )";
 
     ollama.sendPrompt(systemPrompt, prompt);
