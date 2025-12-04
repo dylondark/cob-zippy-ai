@@ -249,7 +249,7 @@ Window {
                             }
                         }
 
-                        // Thinking Indicator Bubble
+                        // Thinking Indicator
                         Item {
                             id: zippyThinkingIndicator
                             // Visible if: Not User AND System Generating AND Last Message AND Message Empty
@@ -262,31 +262,45 @@ Window {
                             x: 15 + 50 - 30 - 5 // Position adjustment based on avatar size
                             y: avatarTopY - 15
 
-                            Rectangle {
+                            Image {
+                                id: thinkingIcon
                                 anchors.centerIn: parent
-                                width: 25; height: 25; radius: 12.5
-                                color: "white"
-                                border.color: "#888"; border.width: 1
+                                width: 30; height: 30
+                                fillMode: Image.PreserveAspectFit
+                                source: "qrc:/images/thought.png"
+                                smooth: true
+                                mipmap: true
+                                antialiasing: true
+                                //Breathing Animation
+                                SequentialAnimation {
+                                    running: true
+                                    loops: Animation.Infinite
 
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 2
-                                    Repeater {
-                                        model: 3
-                                        delegate: Rectangle {
-                                            width: 4; height: 4; radius: 2
-                                            color: "#3a3a3c"
-                                        }
+                                   //Fade to transparent
+                                    NumberAnimation {
+                                        target: thinkingIcon
+                                        property: "opacity"
+                                        from: 1.0; to: 0.4
+                                        duration: 800
+                                        easing.type: Easing.InOutQuad
+                                    }
+
+                                    //Fade back to normal
+                                    NumberAnimation {
+                                        target: thinkingIcon
+                                        property: "opacity"
+                                        from: 0.4; to: 1.0
+                                        duration: 800
+                                        easing.type: Easing.InOutQuad
                                     }
                                 }
                             }
                         }
-                    } // End Delegate
+                    }
 
                     onCountChanged: Qt.callLater(positionViewAtEnd)
                 }
 
-                // Hero Screen (Only Shows When Chat Is Empty)
                 RowLayout {
                     visible: chatModel.count === 0
                     anchors.centerIn: parent

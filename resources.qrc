@@ -6,5 +6,6 @@
         <file>qml/BuildingMaps.qml</file>
         <file>qml/Events.qml</file>
         <file>qml/Contact.qml</file>
+        <file>images/thought.png</file>
     </qresource>
 </RCC>
