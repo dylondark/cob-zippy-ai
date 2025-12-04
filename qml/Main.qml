@@ -333,7 +333,7 @@ Window {
                         text: "Clear Chat"
                         Layout.preferredWidth: 110; Layout.preferredHeight: 55
                         font.bold: true
-                        enabled: chatModel.count > 0
+                        enabled: chatModel.count > 0 && !mainLayout.isGenerating
                         onClicked: chatModel.clear()
                         background: Rectangle {
                             radius: 27.5
