@@ -334,92 +334,105 @@ Window {
             Rectangle {
                 id: inputBar
                 Layout.fillWidth: true
-                Layout.preferredHeight: 85
+                Layout.preferredHeight: 105 // Increased height for disclaimer
                 color: "#070c72"
 
-                RowLayout {
+                ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 15
-                    spacing: 12
+                    anchors.margins: 10
+                    spacing: 5
 
-                    Button {
-                        id: clearChatButton
-                        text: "Clear Chat"
-                        Layout.preferredWidth: 110; Layout.preferredHeight: 55
-                        font.bold: true
-                        enabled: chatModel.count > 0 && !mainLayout.isGenerating
-                        onClicked: chatModel.clear()
-                        background: Rectangle {
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 12
+
+                        Button {
+                            id: clearChatButton
+                            text: "Clear Chat"
+                            Layout.preferredWidth: 110; Layout.preferredHeight: 55
+                            font.bold: true
+                            enabled: chatModel.count > 0 && !mainLayout.isGenerating
+                            onClicked: chatModel.clear()
+                            background: Rectangle {
+                                radius: 27.5
+                                color: clearChatButton.enabled ? "#8B0000" : "#5a5a5a"
+                            }
+                            contentItem: Text {
+                                text: clearChatButton.text
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true; Layout.preferredHeight: 55
                             radius: 27.5
-                            color: clearChatButton.enabled ? "#8B0000" : "#5a5a5a"
-                        }
-                        contentItem: Text {
-                            text: clearChatButton.text
-                            color: "white"
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        }
-                    }
+                            color: "#1a1f6b"
+                            border.color: mainLayout.isGenerating ? "#666" : "#4a4f9b"
+                            border.width: 2
 
-                    Rectangle {
-                        Layout.fillWidth: true; Layout.preferredHeight: 55
-                        radius: 27.5
-                        color: "#1a1f6b"
-                        border.color: mainLayout.isGenerating ? "#666" : "#4a4f9b"
-                        border.width: 2
+                            TextField {
+                                id: inputField
+                                anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
+                                enabled: !mainLayout.isGenerating
+                                color: "white"
+                                placeholderText: "Ask Zippy anything..."
+                                placeholderTextColor: "#ffffff66"
+                                verticalAlignment: TextInput.AlignVCenter
+                                background: Rectangle { color: "transparent" }
+                                onAccepted: sendButton.clicked()
 
-                        TextField {
-                            id: inputField
-                            anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
-                            enabled: !mainLayout.isGenerating
-                            color: "white"
-                            placeholderText: "Ask Zippy anything..."
-                            placeholderTextColor: "#ffffff66"
-                            verticalAlignment: TextInput.AlignVCenter
-                            background: Rectangle { color: "transparent" }
-                            onAccepted: sendButton.clicked()
-
-                            Connections {
-                                target: (typeof controller !== "undefined") ? controller : null
-                                function onGenerateFinished(response) {
-                                    if (chatModel.count > 0) {
-                                        var lastIndex = chatModel.count - 1
-                                        var lastMsg = chatModel.get(lastIndex)
-                                        if (!lastMsg.isUser) {
-                                            chatModel.setProperty(lastIndex, "message", lastMsg.message + response)
+                                Connections {
+                                    target: (typeof controller !== "undefined") ? controller : null
+                                    function onGenerateFinished(response) {
+                                        if (chatModel.count > 0) {
+                                            var lastIndex = chatModel.count - 1
+                                            var lastMsg = chatModel.get(lastIndex)
+                                            if (!lastMsg.isUser) {
+                                                chatModel.setProperty(lastIndex, "message", lastMsg.message + response)
+                                            }
                                         }
                                     }
+                                    function onStreamFinished() {
+                                        mainLayout.isGenerating = false
+                                    }
                                 }
-                                function onStreamFinished() {
-                                    mainLayout.isGenerating = false
+                            }
+                        }
+
+                        Button {
+                            id: sendButton
+                            text: "↑"
+                            enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
+                            Layout.preferredWidth: 55; Layout.preferredHeight: 55
+                            font.pixelSize: 24
+                            onClicked: {
+                                if (inputField.text.trim() !== "") {
+                                    mainLayout.isGenerating = true
+                                    chatModel.append({ message: inputField.text, isUser: true })
+                                    chatModel.append({ message: "", isUser: false })
+                                    if (typeof controller !== "undefined") controller.generate(inputField.text)
+                                    inputField.text = ""
+                                    chatListView.forceActiveFocus()
                                 }
+                            }
+                            background: Rectangle {
+                                radius: 27.5
+                                color: sendButton.enabled ? "#007AFF" : "#3a3a3c"
+                            }
+                            contentItem: Text {
+                                text: sendButton.text; color: "white"
+                                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                             }
                         }
                     }
 
-                    Button {
-                        id: sendButton
-                        text: "↑"
-                        enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
-                        Layout.preferredWidth: 55; Layout.preferredHeight: 55
-                        font.pixelSize: 24
-                        onClicked: {
-                            if (inputField.text.trim() !== "") {
-                                mainLayout.isGenerating = true
-                                chatModel.append({ message: inputField.text, isUser: true })
-                                chatModel.append({ message: "", isUser: false })
-                                if (typeof controller !== "undefined") controller.generate(inputField.text)
-                                inputField.text = ""
-                                chatListView.forceActiveFocus()
-                            }
-                        }
-                        background: Rectangle {
-                            radius: 27.5
-                            color: sendButton.enabled ? "#007AFF" : "#3a3a3c"
-                        }
-                        contentItem: Text {
-                            text: sendButton.text; color: "white"
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        }
+                    Text {
+                        text: "Disclaimer: Zippy AI can make mistakes. Double check all important info."
+                        color: "#cccccc"
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignHCenter
                     }
                 }
             }
