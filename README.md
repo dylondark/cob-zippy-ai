@@ -20,7 +20,7 @@ Screenshot](https://github.com/user-attachments/assets/3ad1debf-a664-46f6-9cde-0
 
 - **Qt 6.8 or higher** - For building the application
 - **Ollama** - For running the AI models locally
-- **qwen3:4b model** (default) - Downloaded automatically by Ollama
+- **qwen3:4b model** - The current default AI LLM Model
 
 ## Getting Started
 
