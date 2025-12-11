@@ -101,7 +101,6 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     json["messages"] = messageHistory;
     json["stream"] = true;
     json["tools"] = QJsonArray() << webSearchTool << webFetchTool;
-    std::cout << QJsonDocument(json).toJson().toStdString() << std::endl;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
@@ -164,7 +163,6 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
     json["messages"] = messageHistory;
     json["stream"] = false;
     json["tools"] = QJsonArray() << webSearchTool << webFetchTool;
-    std::cout << QJsonDocument(json).toJson().toStdString() << std::endl;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
@@ -191,6 +189,8 @@ void OllamaInterface::requestWebSearch(const QString &query, const QString &apiK
     // build the final JSON object to send in the request
     QJsonObject json;
     json["query"] = query;
+    std::cout << "REQUESTING WEB SEARCH WITH QUERY: " << query.toStdString()
+              << std::endl;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
@@ -217,6 +217,7 @@ void OllamaInterface::requestWebFetch(const QString &url, const QString &apiKey)
     // build the final JSON object to send in the request
     QJsonObject json;
     json["url"] = url;
+    std::cout << "REQUESTING WEB FETCH" << std::endl;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
@@ -351,13 +352,14 @@ void OllamaInterface::receiveWebSearch(QNetworkReply *reply)
     {
         emit requestError(reply->errorString());
         reply->deleteLater();
+        return;
     }
 
     QByteArray responseData = reply->readAll();
     // need to parse this and make it pretty for the model
     QJsonObject responseJson = QJsonDocument::fromJson(responseData).object();
     QJsonArray results = responseJson["results"].toArray();
-    QString text = "RESULTS FROM WEB SEARCH:\n\n";
+    QString text = "RESULTS FROM WEB SEARCH:\n";
     for (const QJsonValue &result : results)
     {
         QJsonObject resultObj = result.toObject();
@@ -369,6 +371,13 @@ void OllamaInterface::receiveWebSearch(QNetworkReply *reply)
         text += "URL: " + url + "\n";
         text += "Content: " + content + "\n\n";
     }
+    if (text == "RESULTS FROM WEB SEARCH:\n")
+    {
+        text += "No results found. Web search may have encountered an error or is not working currently.\n"
+            "Tell the user that you were not able to find the information and suggest they contact the University of Akron College of Business directly."
+            "Do not continue attempting to use web search to answer this question.";
+    }
+    std::cout << text.toStdString() << std::endl;
     sendToolPrompt(text);
 }
 
@@ -378,12 +387,13 @@ void OllamaInterface::receiveWebFetch(QNetworkReply *reply)
     {
         emit requestError(reply->errorString());
         reply->deleteLater();
+        return;
     }
 
     QByteArray responseData = reply->readAll();
     // do we need to parse this and make it pretty for the model? were gonna say no for now
     QString text = QString::fromUtf8(responseData);
-    std::cout << text.toStdString() << std::endl;
+    std::cout << "WEB FETCH RESPONSE: \n" << text.toStdString() << std::endl;
 
     sendToolPrompt(text);
 }
