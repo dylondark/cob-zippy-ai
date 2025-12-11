@@ -249,7 +249,7 @@ Window {
                             }
                         }
 
-                        // Thinking Indicator Bubble
+                        // Thinking Indicator
                         Item {
                             id: zippyThinkingIndicator
                             // Visible if: Not User AND System Generating AND Last Message AND Message Empty
@@ -262,31 +262,45 @@ Window {
                             x: 15 + 50 - 30 - 5 // Position adjustment based on avatar size
                             y: avatarTopY - 15
 
-                            Rectangle {
+                            Image {
+                                id: thinkingIcon
                                 anchors.centerIn: parent
-                                width: 25; height: 25; radius: 12.5
-                                color: "white"
-                                border.color: "#888"; border.width: 1
+                                width: 30; height: 30
+                                fillMode: Image.PreserveAspectFit
+                                source: "qrc:/images/thought.png"
+                                smooth: true
+                                mipmap: true
+                                antialiasing: true
+                                //Breathing Animation
+                                SequentialAnimation {
+                                    running: true
+                                    loops: Animation.Infinite
 
-                                RowLayout {
-                                    anchors.centerIn: parent
-                                    spacing: 2
-                                    Repeater {
-                                        model: 3
-                                        delegate: Rectangle {
-                                            width: 4; height: 4; radius: 2
-                                            color: "#3a3a3c"
-                                        }
+                                   //Fade to transparent
+                                    NumberAnimation {
+                                        target: thinkingIcon
+                                        property: "opacity"
+                                        from: 1.0; to: 0.4
+                                        duration: 800
+                                        easing.type: Easing.InOutQuad
+                                    }
+
+                                    //Fade back to normal
+                                    NumberAnimation {
+                                        target: thinkingIcon
+                                        property: "opacity"
+                                        from: 0.4; to: 1.0
+                                        duration: 800
+                                        easing.type: Easing.InOutQuad
                                     }
                                 }
                             }
                         }
-                    } // End Delegate
+                    }
 
                     onCountChanged: Qt.callLater(positionViewAtEnd)
                 }
 
-                // Hero Screen (Only Shows When Chat Is Empty)
                 RowLayout {
                     visible: chatModel.count === 0
                     anchors.centerIn: parent
@@ -320,92 +334,105 @@ Window {
             Rectangle {
                 id: inputBar
                 Layout.fillWidth: true
-                Layout.preferredHeight: 85
+                Layout.preferredHeight: 105 // Increased height for disclaimer
                 color: "#070c72"
 
-                RowLayout {
+                ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 15
-                    spacing: 12
+                    anchors.margins: 10
+                    spacing: 5
 
-                    Button {
-                        id: clearChatButton
-                        text: "Clear Chat"
-                        Layout.preferredWidth: 110; Layout.preferredHeight: 55
-                        font.bold: true
-                        enabled: chatModel.count > 0
-                        onClicked: chatModel.clear()
-                        background: Rectangle {
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 12
+
+                        Button {
+                            id: clearChatButton
+                            text: "Clear Chat"
+                            Layout.preferredWidth: 110; Layout.preferredHeight: 55
+                            font.bold: true
+                            enabled: chatModel.count > 0 && !mainLayout.isGenerating
+                            onClicked: chatModel.clear()
+                            background: Rectangle {
+                                radius: 27.5
+                                color: clearChatButton.enabled ? "#8B0000" : "#5a5a5a"
+                            }
+                            contentItem: Text {
+                                text: clearChatButton.text
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true; Layout.preferredHeight: 55
                             radius: 27.5
-                            color: clearChatButton.enabled ? "#8B0000" : "#5a5a5a"
-                        }
-                        contentItem: Text {
-                            text: clearChatButton.text
-                            color: "white"
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        }
-                    }
+                            color: "#1a1f6b"
+                            border.color: mainLayout.isGenerating ? "#666" : "#4a4f9b"
+                            border.width: 2
 
-                    Rectangle {
-                        Layout.fillWidth: true; Layout.preferredHeight: 55
-                        radius: 27.5
-                        color: "#1a1f6b"
-                        border.color: mainLayout.isGenerating ? "#666" : "#4a4f9b"
-                        border.width: 2
+                            TextField {
+                                id: inputField
+                                anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
+                                enabled: !mainLayout.isGenerating
+                                color: "white"
+                                placeholderText: "Ask Zippy anything..."
+                                placeholderTextColor: "#ffffff66"
+                                verticalAlignment: TextInput.AlignVCenter
+                                background: Rectangle { color: "transparent" }
+                                onAccepted: sendButton.clicked()
 
-                        TextField {
-                            id: inputField
-                            anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
-                            enabled: !mainLayout.isGenerating
-                            color: "white"
-                            placeholderText: "Ask Zippy anything..."
-                            placeholderTextColor: "#ffffff66"
-                            verticalAlignment: TextInput.AlignVCenter
-                            background: Rectangle { color: "transparent" }
-                            onAccepted: sendButton.clicked()
-
-                            Connections {
-                                target: (typeof controller !== "undefined") ? controller : null
-                                function onGenerateFinished(response) {
-                                    if (chatModel.count > 0) {
-                                        var lastIndex = chatModel.count - 1
-                                        var lastMsg = chatModel.get(lastIndex)
-                                        if (!lastMsg.isUser) {
-                                            chatModel.setProperty(lastIndex, "message", lastMsg.message + response)
+                                Connections {
+                                    target: (typeof controller !== "undefined") ? controller : null
+                                    function onGenerateFinished(response) {
+                                        if (chatModel.count > 0) {
+                                            var lastIndex = chatModel.count - 1
+                                            var lastMsg = chatModel.get(lastIndex)
+                                            if (!lastMsg.isUser) {
+                                                chatModel.setProperty(lastIndex, "message", lastMsg.message + response)
+                                            }
                                         }
                                     }
+                                    function onStreamFinished() {
+                                        mainLayout.isGenerating = false
+                                    }
                                 }
-                                function onStreamFinished() {
-                                    mainLayout.isGenerating = false
+                            }
+                        }
+
+                        Button {
+                            id: sendButton
+                            text: "↑"
+                            enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
+                            Layout.preferredWidth: 55; Layout.preferredHeight: 55
+                            font.pixelSize: 24
+                            onClicked: {
+                                if (inputField.text.trim() !== "") {
+                                    mainLayout.isGenerating = true
+                                    chatModel.append({ message: inputField.text, isUser: true })
+                                    chatModel.append({ message: "", isUser: false })
+                                    if (typeof controller !== "undefined") controller.generate(inputField.text)
+                                    inputField.text = ""
+                                    chatListView.forceActiveFocus()
                                 }
+                            }
+                            background: Rectangle {
+                                radius: 27.5
+                                color: sendButton.enabled ? "#007AFF" : "#3a3a3c"
+                            }
+                            contentItem: Text {
+                                text: sendButton.text; color: "white"
+                                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
                             }
                         }
                     }
 
-                    Button {
-                        id: sendButton
-                        text: "↑"
-                        enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
-                        Layout.preferredWidth: 55; Layout.preferredHeight: 55
-                        font.pixelSize: 24
-                        onClicked: {
-                            if (inputField.text.trim() !== "") {
-                                mainLayout.isGenerating = true
-                                chatModel.append({ message: inputField.text, isUser: true })
-                                chatModel.append({ message: "", isUser: false })
-                                if (typeof controller !== "undefined") controller.generate(inputField.text)
-                                inputField.text = ""
-                                chatListView.forceActiveFocus()
-                            }
-                        }
-                        background: Rectangle {
-                            radius: 27.5
-                            color: sendButton.enabled ? "#007AFF" : "#3a3a3c"
-                        }
-                        contentItem: Text {
-                            text: sendButton.text; color: "white"
-                            horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                        }
+                    Text {
+                        text: "Disclaimer: Zippy AI can make mistakes. Double check all important info."
+                        color: "#cccccc"
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignHCenter
                     }
                 }
             }

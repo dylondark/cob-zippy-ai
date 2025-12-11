@@ -1,10 +1,12 @@
 # Zippy AI - College of Business Assistant
 
-A desktop AI chatbot application designed for the University of Akron College of Business. Zippy provides students and faculty with an intelligent assistant to answer questions about the college, programs, and general inquiries.
+A desktop AI chatbot application designed for the University of
+Akron College of Business. Zippy provides students and faculty with
+an intelligent assistant to answer questions about the college,
+programs, and general inquiries.
 
-Zippy AI Screenshot <img width="938" height="712" alt="Screenshot 2025-11-23 130836" src="https://github.com/user-attachments/assets/3ad1debf-a664-46f6-9cde-0afb524b9aa7" />
-
-)
+![Zippy AI
+Screenshot](https://github.com/user-attachments/assets/3ad1debf-a664-46f6-9cde-0afb524b9aa7)
 
 ## Features
 
@@ -12,13 +14,13 @@ Zippy AI Screenshot <img width="938" height="712" alt="Screenshot 2025-11-23 130
 - Local AI model integration via Ollama
 - Conversation history management
 - Clean, modern Qt-based UI
-- Cross-platform support (Windows, macOS, Linux)
+- Cross-platform support (Windows, macOS, GNU/Linux)
 
 ## Requirements
 
 - **Qt 6.8 or higher** - For building the application
 - **Ollama** - For running the AI models locally
-- **qwen3:4b model** (default) - Downloaded automatically by Ollama
+- **qwen3:4b model** - The current default AI LLM Model
 
 ## Getting Started
 
@@ -36,13 +38,17 @@ Open a terminal/command prompt and run:
 ollama pull qwen3:4b
 ```
 
-This downloads the default AI model used by Zippy (approximately 2.3GB).
+This downloads the default AI model used by Zippy (approximately
+2.3GB).
 
 ### 3. Run the Application
 
-**Important:** Ollama must be running before you start Zippy AI. Ollama typically runs automatically in the background after installation.
+**Important:** Ollama must be running before you start Zippy AI.
+Ollama typically runs automatically in the background after
+installation.
 
-Then simply launch `appcob_zippy_ai.exe` (Windows) or the compiled executable for your platform.
+Then simply launch `appcob_zippy_ai.exe` (Windows) or the compiled
+executable for your platform.
 
 ## Building from Source
 
@@ -78,13 +84,15 @@ cmake --build . --config Release
 You can configure Zippy through the settings panel:
 
 - **Ollama URL**: Default is `http://localhost:11434`
-- **Model**: Default is `qwen3:4b` (you can change to other Ollama models)
+- **Model**: Default is `qwen3:4b` (you can change to other Ollama
+  models)
 - **Context Size**: Adjustable for longer conversations
 - **Timeout**: Request timeout in seconds
 
 ## Available Models
 
-While Zippy uses `qwen3:4b` by default, you can use any model available through Ollama:
+While Zippy uses `qwen3:4b` by default, you can use any model
+available through Ollama:
 
 ```bash
 # List available models
@@ -96,6 +104,12 @@ ollama pull mistral
 ```
 
 Then change the model in Zippy's settings.
+
+**Please note that Zippy AI requires Ollama to be running in the
+background.**  The AI responses are generated locally on your machine
+using the Ollama framework.  Make sure that both Ollama and the
+model you wish to use with it are both installed prior to using the
+AI.
 
 ## Troubleshooting
 
@@ -118,17 +132,27 @@ Then change the model in Zippy's settings.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions are welcome! Please feel free to submit issues or
+pull requests.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Zippy AI is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
 
-## Disclaimer
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
 
-⚠️ **Important:** This application requires Ollama to be running in the background. The AI responses are generated locally on your machine using the Ollama framework. Make sure Ollama is installed and the required model is downloaded before using Zippy AI.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Credits
 
-Developed for the University of Akron College of Business
-Powered by [Ollama](https://ollama.com) and Qt Framework
+Developed for the [University of Akron College of
+Business](https://www.uakron.edu/cba/)\
+Powered by [Ollama](https://ollama.com) and [Qt
+Framework](https://www.qt.io/development/qt-framework)
