@@ -47,8 +47,27 @@ This downloads the default AI model used by Zippy (approximately
 Ollama typically runs automatically in the background after
 installation.
 
+Follow the instructions in the "Configuration File" section below to add an Ollama API key so that the model can use web search and web fetch.
+
 Then simply launch `appcob_zippy_ai.exe` (Windows) or the compiled
 executable for your platform.
+
+## Configuration File
+
+The program utilizes a configuration file to store persistent settings as well as the Ollama API key used for web search and web fetch. **You will need to edit this file in order to provide an API key**. The file is called `cob_zippy_ai.ini` and is located in the same folder as the executable. 
+
+The contents should look something like this:
+
+```
+[API]
+OllamaKey=yourapikeyhere
+
+[Ollama]
+Model=gpt-oss:20b
+URL=http://192.168.0.100:11434
+```
+
+If you don't see the API section when you open the file, add it yourself. You can get an API key by making an account on ollama.com. 
 
 ## Building from Source
 
