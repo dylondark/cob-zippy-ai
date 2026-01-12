@@ -33,6 +33,9 @@ public:
     // request web fetch from ollama api
     void requestWebFetch(const QString &url, const QString &apiKey);
 
+    // get navigation directions for a room
+    QString getNavigation(const QString &roomNumber);
+
     bool isConnected() const;
     void setURL(string url);
     string getURL() const;

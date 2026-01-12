@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <qjsonarray.h>
 #include <QSettings>
+#include <QMap>
 
 OllamaInterface::OllamaInterface(string url, string model, int contextSize, int timeout)
     : connected(false), url(url), model(model), contextSize(contextSize), timeout(timeout)
@@ -95,12 +96,29 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     webFetchFunction["parameters"] = webFetchParameters;
     webFetchTool["function"] = webFetchFunction;
 
+    // build the navigation tool JSON object
+    QJsonObject navigationTool;
+    navigationTool["type"] = "function";
+    QJsonObject navigationFunction;
+    navigationFunction["name"] = "get_navigation";
+    navigationFunction["description"] = "Get turn-by-turn navigation directions to a specific room in the College of Business building Floor 1. Use this when someone asks for directions to a room.";
+    QJsonObject navigationParameters;
+    navigationParameters["type"] = "object";
+    QJsonObject navProperties;
+    QJsonObject roomProperty;
+    roomProperty["type"] = "string";
+    roomProperty["description"] = "The room number (e.g., '125', '147', '120').";
+    navProperties["room_number"] = roomProperty;
+    navigationParameters["properties"] = navProperties;
+    navigationFunction["parameters"] = navigationParameters;
+    navigationTool["function"] = navigationFunction;
+
     // build the final JSON object to send in the request
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
     json["messages"] = messageHistory;
     json["stream"] = true;
-    json["tools"] = QJsonArray() << webSearchTool << webFetchTool;
+    json["tools"] = QJsonArray() << webSearchTool << webFetchTool << navigationTool;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
@@ -280,20 +298,16 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                 QString role = messageObj["role"].toString();
                 QString content = messageObj["content"].toString();
                 QJsonArray tool_calls_arr = messageObj["tool_calls"].toArray();
-                QJsonObject tool_calls = tool_calls_arr.first().toObject();
-                QJsonObject tool_calls_func = tool_calls["function"].toObject();
 
                 // Only use assistant message content
                 if (role == "assistant")
                 {
-                    if (tool_calls_arr.empty())
+                    // Check if there are tool calls - only access array if not empty
+                    if (!tool_calls_arr.isEmpty())
                     {
-                        text = content;
-                        totalMessage += text;
-                        emit responseReceived(text);
-                    }
-                    else
-                    {
+                        QJsonObject tool_calls = tool_calls_arr.first().toObject();
+                        QJsonObject tool_calls_func = tool_calls["function"].toObject();
+
                         // select tool
                         if (tool_calls_func.contains("name") && tool_calls_func.contains("arguments"))
                         {
@@ -313,11 +327,24 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                                 QString url = toolArgs["url"].toString();
                                 requestWebFetch(url, apiKey);
                             }
+                            else if (toolName == "get_navigation")
+                            {
+                                QString roomNumber = toolArgs["room_number"].toString();
+                                QString directions = getNavigation(roomNumber);
+                                sendToolPrompt(directions);
+                            }
                             else
                             {
                                 emit requestError("Unknown tool requested: " + toolName);
                             }
                         }
+                    }
+                    else
+                    {
+                        // No tool calls, just regular message content
+                        text = content;
+                        totalMessage += text;
+                        emit responseReceived(text);
                     }
                 }
             }
@@ -449,4 +476,85 @@ void OllamaInterface::addMessageToHistory(QString role, QString content)
     message["role"] = role;
     message["content"] = content;
     messageHistory.append(message);
+}
+
+QString OllamaInterface::getNavigation(const QString &roomNumber)
+{
+    // Return the complete navigation context for the requested room
+    QString fullMap = R"(
+=== FLOOR 1 NAVIGATION MAP ===
+
+DEFAULT STARTING POSITION: You are facing the big screen/elevator area.
+
+MAIN HALLWAY (Turn around so screen is behind you):
+
+LEFT SIDE (walking down the hallway):
+1. Room 125 - first door on your left
+2. Room 126 - second door on your left
+3. Bathroom - on your left
+4. Room 131 - on your left
+5. Stairs - on your left
+6. Room 132 - on your left
+7. Room 133 - on your left
+8. Room 134 - on your left
+9. Exit - straight ahead at the end
+
+RIGHT SIDE (walking down the same hallway):
+1. Room 121 - first room on your right
+2. Hallway entrance - on your right (after room 121)
+   - Note: Bathroom is on your left at this junction
+3. Room 130 - on your right (if you continue straight past the hallway)
+4. Another hallway entrance - on your right (after room 130)
+5. Exit - straight ahead (same exit as left side)
+
+SECONDARY HALLWAY (the hallway after room 121):
+Turn right into the hallway after room 121:
+- Immediately on LEFT: Another entrance to Room 130
+- On RIGHT: Back wall of Room 121
+- Walk forward, on LEFT: Room 149
+- On RIGHT: Room 120
+- Continue to T-junction:
+  - On LEFT before junction: Room 148
+  - Turn LEFT at T-junction, then Room 147 is straight ahead
+  - Turn RIGHT at T-junction returns you to the big screen/elevator area
+
+FROM T-JUNCTION (after turning LEFT, Room 147 is now behind you):
+- On your RIGHT: Room 147
+- Walk forward, on RIGHT: Room 146
+- Continue forward:
+  - On LEFT: Room 145
+  - On RIGHT: Room 144
+- You've reached a PLUS (+) JUNCTION
+
+AT THE PLUS (+) JUNCTION (near rooms 145/144):
+Option 1 - Turn RIGHT:
+  - Small hallway
+  - Room 143 on your right before the exit
+  - Exit at the end
+
+Option 2 - Go STRAIGHT:
+  - Small hallway
+  - Stairs on your LEFT
+  - Room 142 straight ahead
+
+Option 3 - Turn LEFT:
+  - Long hallway
+  - Bathrooms on your RIGHT
+  - Walk forward, Room 148 on LEFT
+  - Room 139 on RIGHT
+  - Room 130 on LEFT (you've made a loop back to the main hallway area)
+  - At the end: Turn RIGHT for exit, or go STRAIGHT to reach Room 133
+
+=== NAVIGATION INSTRUCTIONS ===
+Based on this map, provide turn-by-turn directions to Room )";
+
+    fullMap += roomNumber + R"( from the default starting position (facing the big screen).
+- Give clear left/right/straight directions
+- Mention landmarks they'll pass (bathrooms, stairs, other rooms)
+- Confirm what they should see when they arrive
+
+If the room number is not on this map, say you don't have information for that room.
+)";
+
+    return fullMap;
 }
