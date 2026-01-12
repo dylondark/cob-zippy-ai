@@ -407,15 +407,28 @@ Window {
                             enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
                             Layout.preferredWidth: 55; Layout.preferredHeight: 55
                             font.pixelSize: 24
+
+                            readonly property int maxInputLength: 4000
+
                             onClicked: {
-                                if (inputField.text.trim() !== "") {
-                                    mainLayout.isGenerating = true
-                                    chatModel.append({ message: inputField.text, isUser: true })
-                                    chatModel.append({ message: "", isUser: false })
-                                    if (typeof controller !== "undefined") controller.generate(inputField.text)
-                                    inputField.text = ""
-                                    chatListView.forceActiveFocus()
+                                var trimmedText = inputField.text.trim()
+                                if (trimmedText === "") return
+
+                                // Validate input length
+                                if (trimmedText.length > maxInputLength) {
+                                    chatModel.append({
+                                        message: "Your message is too long (" + trimmedText.length + " characters). Please keep messages under " + maxInputLength + " characters.",
+                                        isUser: false
+                                    })
+                                    return
                                 }
+
+                                mainLayout.isGenerating = true
+                                chatModel.append({ message: trimmedText, isUser: true })
+                                chatModel.append({ message: "", isUser: false })
+                                if (typeof controller !== "undefined") controller.generate(trimmedText)
+                                inputField.text = ""
+                                chatListView.forceActiveFocus()
                             }
                             background: Rectangle {
                                 radius: 27.5
@@ -428,11 +441,23 @@ Window {
                         }
                     }
 
-                    Text {
-                        text: "Disclaimer: Zippy AI can make mistakes. Double check all important info."
-                        color: "#cccccc"
-                        font.pixelSize: 11
-                        Layout.alignment: Qt.AlignHCenter
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: "Disclaimer: Zippy AI can make mistakes. Double check all important info."
+                            color: "#cccccc"
+                            font.pixelSize: 11
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        Text {
+                            text: inputField.text.length + "/" + sendButton.maxInputLength
+                            color: inputField.text.length > sendButton.maxInputLength ? "#ff6b6b" : "#888888"
+                            font.pixelSize: 10
+                            visible: inputField.text.length > 0
+                        }
                     }
                 }
             }

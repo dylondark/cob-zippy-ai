@@ -7,5 +7,6 @@
         <file>qml/Events.qml</file>
         <file>qml/Contact.qml</file>
         <file>images/thought.png</file>
+        <file>data/floor1_navigation.txt</file>
     </qresource>
 </RCC>

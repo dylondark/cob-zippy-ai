@@ -70,6 +70,7 @@ private:
     int contextSize; // in tokens
     int timeout; // in seconds
     QJsonArray messageHistory;
+    QString pendingMessage; // Accumulates streaming response content
 
     QNetworkAccessManager *networkManager;
     QThread requestThread;

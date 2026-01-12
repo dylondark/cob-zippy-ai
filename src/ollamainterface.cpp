@@ -8,6 +8,9 @@
 #include <qjsonarray.h>
 #include <QSettings>
 #include <QMap>
+#include <QSet>
+#include <QFile>
+#include <QTextStream>
 
 OllamaInterface::OllamaInterface(string url, string model, int contextSize, int timeout)
     : connected(false), url(url), model(model), contextSize(contextSize), timeout(timeout)
@@ -267,7 +270,6 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
     {
         QByteArray responseData = reply->readAll();
         QString text;
-        static QString totalMessage;
         std::cout << responseData.toStdString() << std::endl;
 
         // The response can contain multiple JSON objects separated by newlines
@@ -283,10 +285,10 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
 
             if (parseError.error != QJsonParseError::NoError || !jsonResponse.isObject())
             {
-                // If not valid JSON, emit raw data for debugging
-                // NOTE: THIS IS TEMPORARY, this should be handled properly
-                text = QString::fromUtf8(line);
-                emit responseReceived(text);
+                // Log parse error for debugging but don't show raw data to user
+                std::cerr << "JSON parse error: " << parseError.errorString().toStdString()
+                          << " at offset " << parseError.offset << std::endl;
+                std::cerr << "Problematic data: " << line.toStdString() << std::endl;
                 continue;
             }
 
@@ -343,25 +345,26 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                     {
                         // No tool calls, just regular message content
                         text = content;
-                        totalMessage += text;
+                        pendingMessage += text;
                         emit responseReceived(text);
                     }
                 }
             }
-            else
+            else if (obj.contains("error"))
             {
-                // If something unexpected, emit full JSON line
-                // NOTE: THIS IS TEMPORARY, this should be handled properly
-                text = QString::fromUtf8(line);
-                emit responseReceived(text);
+                // Handle Ollama error responses gracefully
+                QString errorMsg = obj["error"].toString();
+                std::cerr << "Ollama error: " << errorMsg.toStdString() << std::endl;
+                emit requestError("Ollama error: " + errorMsg);
             }
+            // Silently ignore other unexpected JSON structures (e.g., status updates)
 
             if (obj.contains("done") && obj["done"].toBool())
             {
                 reply->deleteLater();
-                addMessageToHistory("assistant", totalMessage);
+                addMessageToHistory("assistant", pendingMessage);
                 emit responseFinished();
-                totalMessage.clear();
+                pendingMessage.clear();
                 return; // Stop processing once done is true
             }
         }
@@ -480,81 +483,49 @@ void OllamaInterface::addMessageToHistory(QString role, QString content)
 
 QString OllamaInterface::getNavigation(const QString &roomNumber)
 {
-    // Return the complete navigation context for the requested room
-    QString fullMap = R"(
-=== FLOOR 1 NAVIGATION MAP ===
+    // List of valid rooms on Floor 1 - ONLY these rooms exist
+    QSet<QString> validRooms = {
+        "120", "121", "125", "126", "130", "131", "132", "133", "134",
+        "139", "142", "143", "144", "145", "146", "147", "148", "149"
+    };
 
-DEFAULT STARTING POSITION: You are facing the big screen/elevator area.
+    // Check if the requested room exists on Floor 1
+    if (!validRooms.contains(roomNumber))
+    {
+        return QString(
+            "I don't have navigation information for room %1. "
+            "This room is either not on Floor 1 of the College of Business building, "
+            "or it doesn't exist in my navigation database. "
+            "I can only provide directions for rooms on Floor 1. "
+            "If you need help finding a room on a different floor, "
+            "please contact the College of Business office at 330-972-7042."
+        ).arg(roomNumber);
+    }
 
-MAIN HALLWAY (Turn around so screen is behind you):
+    // Load navigation map from resource file
+    QFile navFile(":/data/floor1_navigation.txt");
+    QString navigationMap;
 
-LEFT SIDE (walking down the hallway):
-1. Room 125 - first door on your left
-2. Room 126 - second door on your left
-3. Bathroom - on your left
-4. Room 131 - on your left
-5. Stairs - on your left
-6. Room 132 - on your left
-7. Room 133 - on your left
-8. Room 134 - on your left
-9. Exit - straight ahead at the end
+    if (navFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&navFile);
+        navigationMap = in.readAll();
+        navFile.close();
+    }
+    else
+    {
+        std::cerr << "Failed to load navigation data file" << std::endl;
+        return QString("Navigation data is currently unavailable. Please try again later.");
+    }
 
-RIGHT SIDE (walking down the same hallway):
-1. Room 121 - first room on your right
-2. Hallway entrance - on your right (after room 121)
-   - Note: Bathroom is on your left at this junction
-3. Room 130 - on your right (if you continue straight past the hallway)
-4. Another hallway entrance - on your right (after room 130)
-5. Exit - straight ahead (same exit as left side)
-
-SECONDARY HALLWAY (the hallway after room 121):
-Turn right into the hallway after room 121:
-- Immediately on LEFT: Another entrance to Room 130
-- On RIGHT: Back wall of Room 121
-- Walk forward, on LEFT: Room 149
-- On RIGHT: Room 120
-- Continue to T-junction:
-  - On LEFT before junction: Room 148
-  - Turn LEFT at T-junction, then Room 147 is straight ahead
-  - Turn RIGHT at T-junction returns you to the big screen/elevator area
-
-FROM T-JUNCTION (after turning LEFT, Room 147 is now behind you):
-- On your RIGHT: Room 147
-- Walk forward, on RIGHT: Room 146
-- Continue forward:
-  - On LEFT: Room 145
-  - On RIGHT: Room 144
-- You've reached a PLUS (+) JUNCTION
-
-AT THE PLUS (+) JUNCTION (near rooms 145/144):
-Option 1 - Turn RIGHT:
-  - Small hallway
-  - Room 143 on your right before the exit
-  - Exit at the end
-
-Option 2 - Go STRAIGHT:
-  - Small hallway
-  - Stairs on your LEFT
-  - Room 142 straight ahead
-
-Option 3 - Turn LEFT:
-  - Long hallway
-  - Bathrooms on your RIGHT
-  - Walk forward, Room 148 on LEFT
-  - Room 139 on RIGHT
-  - Room 130 on LEFT (you've made a loop back to the main hallway area)
-  - At the end: Turn RIGHT for exit, or go STRAIGHT to reach Room 133
-
-=== NAVIGATION INSTRUCTIONS ===
-Based on this map, provide turn-by-turn directions to Room )";
-
-    fullMap += roomNumber + R"( from the default starting position (facing the big screen).
-- Give clear left/right/straight directions
-- Mention landmarks they'll pass (bathrooms, stairs, other rooms)
-- Confirm what they should see when they arrive
-
-If the room number is not on this map, say you don't have information for that room.
-)";
+    // Build the full prompt with room-specific instructions
+    QString fullMap = navigationMap;
+    fullMap += "\n\n=== NAVIGATION INSTRUCTIONS ===\n";
+    fullMap += "Based on this map, provide turn-by-turn directions to Room " + roomNumber;
+    fullMap += " from the default starting position (facing the big screen).\n";
+    fullMap += "- Give clear left/right/straight directions\n";
+    fullMap += "- Mention landmarks they'll pass (bathrooms, stairs, other rooms)\n";
+    fullMap += "- Confirm what they should see when they arrive\n";
 
     return fullMap;
 }

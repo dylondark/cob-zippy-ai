@@ -21,9 +21,9 @@ Page {
 
     ListModel {
         id: eventModel
-        ListElement { title: "Career Fair 2024"; date: "OCT 12"; time: "10:00 AM"; location: "Grand Hall" }
-        ListElement { title: "AI in Business Talk"; date: "OCT 15"; time: "2:00 PM"; location: "Room 304" }
-        ListElement { title: "Alumni Networking"; date: "NOV 01"; time: "6:00 PM"; location: "Student Union" }
+        ListElement { title: "Spring Career Fair 2026"; date: "FEB 18"; time: "10:00 AM"; location: "Grand Hall" }
+        ListElement { title: "AI in Business Talk"; date: "MAR 05"; time: "2:00 PM"; location: "Room 304" }
+        ListElement { title: "Alumni Networking Night"; date: "MAR 20"; time: "6:00 PM"; location: "Student Union" }
     }
 
     ListView {
