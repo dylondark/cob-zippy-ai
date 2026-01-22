@@ -5,10 +5,28 @@ import QtQuick.Layouts
 Page {
     id: contactPage
     background: Rectangle { color: "#f5f5f7" }
+
+    // A simple popup to confirm the save worked
+    Dialog {
+        id: successDialog
+        anchors.centerIn: parent
+        title: "Ticket Submitted"
+        standardButtons: Dialog.Ok
+        modal: true // Blocks interaction with the rest of the app until closed
+
+        Text {
+            text: "Your message has been saved successfully."
+            anchors.centerIn: parent
+            leftPadding: 20
+            rightPadding: 20
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: contactPage.forceActiveFocus()
     }
+
     header: Rectangle {
         width: parent.width
         height: 60
@@ -26,7 +44,6 @@ Page {
         anchors.centerIn: parent
         width: Math.min(parent.width * 0.9, 400)
         spacing: 20
-
 
         Rectangle {
             Layout.fillWidth: true
@@ -55,9 +72,7 @@ Page {
         }
 
         TextArea {
-
             id: messageInput
-
             Layout.fillWidth: true
             Layout.preferredHeight: 100
             placeholderText: "Type your issue here... (Enter to send)"
@@ -69,16 +84,14 @@ Page {
                 radius: 8
             }
 
-
             Keys.onReturnPressed: (event) => {
-
-                                      if ((event.modifiers & Qt.ShiftModifier) == 0) {
-                                          submitButton.clicked()
-                                          event.accepted = true
-                                      } else {
-                                          event.accepted = false
-                                      }
-                                  }
+                if ((event.modifiers & Qt.ShiftModifier) == 0) {
+                    submitButton.clicked()
+                    event.accepted = true
+                } else {
+                    event.accepted = false
+                }
+            }
         }
 
         Button {
@@ -89,8 +102,17 @@ Page {
 
             onClicked: {
                 if (messageInput.text.trim() !== "") {
-                    console.log("Message submitted: " + messageInput.text)
-                    messageInput.text = ""
+
+                    // --- CALLING THE NEW C++ CLASS ---
+                    var success = contactSupport.saveTicket(messageInput.text)
+
+                    if (success) {
+                        console.log("Message appended to CSV: " + messageInput.text)
+                        successDialog.open() // Show the success popup
+                        messageInput.text = ""
+                    } else {
+                        console.log("Failed to save message.")
+                    }
                 }
             }
 
