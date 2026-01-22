@@ -103,7 +103,7 @@ Page {
             onClicked: {
                 if (messageInput.text.trim() !== "") {
 
-                    // --- CALLING THE NEW C++ CLASS ---
+                    // Calls the C++ class
                     var success = contactSupport.saveTicket(messageInput.text)
 
                     if (success) {

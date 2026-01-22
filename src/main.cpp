@@ -2,7 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "programcontroller.h"
-#include "ContactSupport.h" //  <-- 1. Include the new header
+#include "ContactSupport.h"
 
 int main(int argc, char *argv[])
 {
@@ -18,17 +18,11 @@ int main(int argc, char *argv[])
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
 
-    // Your Existing Controller
     ProgramController controller;
     engine.rootContext()->setContextProperty("controller", &controller);
-
-    // --- NEW CODE START ---
-    // Create the support backend and expose it to QML as "contactSupport"
     ContactSupport supportBackend;
     engine.rootContext()->setContextProperty("contactSupport", &supportBackend);
-    // --- NEW CODE END ---
 
     engine.loadFromModule("cob_zippy_ai", "Main");
-
     return app.exec();
 }
