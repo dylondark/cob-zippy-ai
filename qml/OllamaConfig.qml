@@ -17,7 +17,6 @@ ApplicationWindow {
     // update ollama status on close
     onClosing: {
         controller.pingOllama();
-        root.updateOllamaStatus();
     }
 
     Pane {

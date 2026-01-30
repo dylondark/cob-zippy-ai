@@ -8,7 +8,7 @@ ProgramController::ProgramController(QObject *parent)
            settings.value("Ollama/Model", "qwen3:4b").toString().toStdString(),
            settings.value("Ollama/ContextSize", 32000).toInt(),
            settings.value("Ollama/Timeout", 120).toInt()),
-    currentGenerateStatus(Error)
+    currentGenerateStatus(Idle)
 {
     connect(&ollama, &OllamaInterface::responseReceived, this, &ProgramController::onGenerateFinished);
     connect(&ollama, &OllamaInterface::responseFinished, this, &ProgramController::onStreamFinished);
@@ -103,6 +103,11 @@ bool ProgramController::getOllamaStatus()
 */
 void ProgramController::generate(const QString& prompt)
 {
+    if (!ollama.isConnected())
+    {
+        setGenerateStatus(Error);
+        return;
+    }
     QString systemPrompt = R"(You are Zippy, a helpful AI assistant for the University of Akron College of Business.
 Help users as much as you can with the information you know about the College.
 If you are not sure about something, you have access to web search and web fetch tools to allow you to retrieve information from the internet.
@@ -112,12 +117,15 @@ If after using these tools you still cannot find the answer to a question, say y
 
 For navigation questions (when someone asks "Where is room X?" or "How do I get to room Y?"), use the get_navigation tool. This tool provides turn-by-turn directions for rooms in the College of Business building Floor 1.
 
+IMPORTANT: Respond directly without showing your thinking process. Do not use <think> tags. Just provide clear, direct answers.
+
 OTHER INFORMATION FOR YOUR REFERENCE:
 - The phone number for the College of Business is 330-972-7042 for the undergraduate office and 330-972-7043 for the graduate office.
 - The current interim dean of the College of Business is James B. Thomson, although as of Jan 3. 2026 Dr. Terry Daugherty will take over as dean.
 )";
-
+    
     ollama.sendPrompt(systemPrompt, prompt);
+    setGenerateStatus(Generating);
 }
 
 /*
@@ -136,6 +144,7 @@ ProgramController::GenerateStatus ProgramController::getGenerateStatus() const
 }
 void ProgramController::onStreamFinished()
 {
+    setGenerateStatus(Finished);
     // This emits the new signal for QML to hear
     emit streamFinished();
 }
