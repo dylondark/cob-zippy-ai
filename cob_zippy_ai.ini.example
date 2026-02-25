@@ -1,0 +1,8 @@
+[API]
+OllamaKey=
+
+[Ollama]
+URL=http://cobgpu1.uanet.edu:11434
+Model=gpt-oss:20b
+ContextSize=32000
+Timeout=120

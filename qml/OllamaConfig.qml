@@ -11,7 +11,7 @@ ApplicationWindow {
     maximumWidth: 400
     maximumHeight: 200
     visible: true
-    title: "llmelody - Ollama Config"
+    title: "Zippy AI - Ollama Config"
     flags: Qt.Window | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
 
     // update ollama status on close
@@ -47,7 +47,7 @@ ApplicationWindow {
             }
             TextField {
                 id: urlField
-                text: "http://localhost:11434"
+                text: "http://cobgpu1.uanet.edu:11434"
                 Layout.fillWidth: true
             }
 
@@ -59,7 +59,7 @@ ApplicationWindow {
             }
             TextField {
                 id: modelField
-                text: "qwen3:4b"
+                text: "gpt-oss:20b"
                 Layout.fillWidth: true
             }
         }

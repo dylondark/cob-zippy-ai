@@ -19,8 +19,8 @@ Screenshot](https://github.com/user-attachments/assets/3ad1debf-a664-46f6-9cde-0
 ## Requirements
 
 - **Qt 6.8 or higher** - For building the application
-- **Ollama** - For running the AI models locally
-- **qwen3:4b model** - The current default AI LLM Model
+- **Ollama** - For running the AI models (local or remote server)
+- **gpt-oss:20b model** - The current default AI LLM Model
 
 ## Getting Started
 
@@ -35,11 +35,15 @@ After installation, Ollama will run in the background.
 Open a terminal/command prompt and run:
 
 ```bash
-ollama pull qwen3:4b
+ollama pull gpt-oss:20b
 ```
 
 This downloads the default AI model used by Zippy (approximately
-2.3GB).
+14GB).
+
+**Note for CoB Production:** The production server at `cobgpu1.uanet.edu`
+already has the required models installed. Skip this step if connecting
+to the CoB GPU server.
 
 ### 3. Run the Application
 
@@ -58,13 +62,15 @@ The program utilizes a configuration file to store persistent settings as well a
 
 The contents should look something like this:
 
-```
+```ini
 [API]
 OllamaKey=yourapikeyhere
 
 [Ollama]
 Model=gpt-oss:20b
-URL=http://192.168.0.100:11434
+URL=http://cobgpu1.uanet.edu:11434
+ContextSize=32000
+Timeout=120
 ```
 
 If you don't see the API section when you open the file, add it yourself. You can get an API key by making an account on ollama.com. 
@@ -102,24 +108,41 @@ cmake --build . --config Release
 
 You can configure Zippy through the settings panel:
 
-- **Ollama URL**: Default is `http://localhost:11434`
-- **Model**: Default is `qwen3:4b` (you can change to other Ollama
+- **Ollama URL**: Default is `http://cobgpu1.uanet.edu:11434` (CoB GPU server)
+- **Model**: Default is `gpt-oss:20b` (you can change to other Ollama
   models)
-- **Context Size**: Adjustable for longer conversations
-- **Timeout**: Request timeout in seconds
+- **Context Size**: Adjustable for longer conversations (default: 32,000 tokens)
+- **Timeout**: Request timeout in seconds (default: 120s)
+
+### Production Server (CoB)
+
+For production use within the College of Business:
+
+| Setting | Value |
+|---------|-------|
+| URL | `http://cobgpu1.uanet.edu:11434` |
+| Model | `gpt-oss:20b` |
+| Network | Campus VPN or CoB Wired network required |
 
 ## Available Models
 
-While Zippy uses `qwen3:4b` by default, you can use any model
-available through Ollama:
+While Zippy uses `gpt-oss:20b` by default, you can use any model
+available through Ollama. Recommended models for the Tesla L4 (24GB):
+
+| Model | Size | VRAM | Notes |
+|-------|------|------|-------|
+| `gpt-oss:20b` | 14GB | ~16-18GB | **Default** - tool support, reasoning |
+| `llama3.1:8b` | 4.7GB | ~6GB | Lighter alternative |
+| `qwen2.5:14b` | ~9GB | ~10GB | Excellent reasoning |
+| `mistral:7b` | 4.1GB | ~5GB | Fast, efficient |
 
 ```bash
 # List available models
 ollama list
 
 # Pull a different model
-ollama pull llama2
-ollama pull mistral
+ollama pull qwen2.5:14b
+ollama pull mistral:7b
 ```
 
 Then change the model in Zippy's settings.
@@ -134,14 +157,16 @@ AI.
 
 ### "Not connected to Ollama server"
 
-- Ensure Ollama is installed and running
-- Check if Ollama is accessible at `http://localhost:11434`
+- For CoB production: Ensure you're on Campus VPN or CoB wired network
+- Test server connectivity: `curl http://cobgpu1.uanet.edu:11434/api/tags`
+- For local development: Ensure Ollama is installed and running locally
 - Try running `ollama list` in terminal to verify Ollama is working
 
 ### Model not found
 
-- Make sure you've pulled the model: `ollama pull qwen3:4b`
+- Make sure you've pulled the model: `ollama pull gpt-oss:20b`
 - Check available models: `ollama list`
+- On production server: SSH to cobgpu1 and run `ollama pull <model>`
 
 ### Application won't start
 
