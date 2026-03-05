@@ -7,37 +7,36 @@ Page {
 
     header: Rectangle {
         width: parent.width
-        height: 60
+        height: window.sz(60) // Scaled
         color: "#070c72"
         Text {
             anchors.centerIn: parent
             text: "Upcoming Events"
             color: "white"
-            font.pixelSize: 20
+            font.pixelSize: window.sz(20) // Scaled
             font.bold: true
         }
     }
 
-
     ListModel {
         id: eventModel
-        ListElement { title: "Spring Career Fair 2026"; date: "FEB 18"; time: "10:00 AM"; location: "Grand Hall" }
-        ListElement { title: "AI in Business Talk"; date: "MAR 05"; time: "2:00 PM"; location: "Room 304" }
-        ListElement { title: "Alumni Networking Night"; date: "MAR 20"; time: "6:00 PM"; location: "Student Union" }
+        ListElement { title: "Sales and You: How to Close"; date: "MAR 08"; time: "10:00 AM"; location: "Grand Hall" }
+        ListElement { title: "Robotic Business: AI Businessmen"; date: "MAR 15"; time: "2:00 PM"; location: "Room 304" }
+        ListElement { title: "Professional Career Opportunities"; date: "APR 20"; time: "6:00 PM"; location: "Student Union" }
     }
 
     ListView {
         id: eventList
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
+        anchors.margins: window.sz(20) // Scaled
+        spacing: window.sz(15) // Scaled
         model: eventModel
         clip: true
 
         delegate: Rectangle {
             width: eventList.width
-            height: 100
-            radius: 12
+            height: window.sz(100) // Scaled
+            radius: window.sz(12) // Scaled
             color: "white"
             border.color: "#e0e0e0"
 
@@ -47,48 +46,48 @@ Page {
 
                 // Date Box
                 Rectangle {
-                    Layout.preferredWidth: 80
+                    Layout.preferredWidth: window.sz(80) // Scaled
                     Layout.fillHeight: true
                     color: "#070c72"
+                    radius: window.sz(12) // Scaled
 
-
-                    radius: 12
+                    // Small overlap fix to keep right corners square against the content
                     Rectangle {
-                        width: 12; height: parent.height
+                        width: window.sz(12)
+                        height: parent.height
                         anchors.right: parent.right
                         color: "#070c72"
                     }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 2
+                        spacing: window.sz(2)
                         Text {
                             text: model.date.split(" ")[0]
-                            color: "white"; font.pixelSize: 12
+                            color: "white"; font.pixelSize: window.sz(12) // Scaled
                             Layout.alignment: Qt.AlignHCenter
                         }
                         Text {
                             text: model.date.split(" ")[1]
-                            color: "white"; font.pixelSize: 22; font.bold: true
+                            color: "white"; font.pixelSize: window.sz(22); font.bold: true // Scaled
                             Layout.alignment: Qt.AlignHCenter
                         }
                     }
                 }
 
-
                 ColumnLayout {
                     Layout.fillWidth: true
-                    Layout.margins: 15
-                    spacing: 5
+                    Layout.margins: window.sz(15) // Scaled
+                    spacing: window.sz(5) // Scaled
 
                     Text {
                         text: model.title
-                        font.bold: true; font.pixelSize: 18
+                        font.bold: true; font.pixelSize: window.sz(18) // Scaled
                         color: "#333"
                     }
                     Text {
                         text: "🕒 " + model.time + "  📍 " + model.location
-                        color: "#666"; font.pixelSize: 14
+                        color: "#666"; font.pixelSize: window.sz(14) // Scaled
                     }
                 }
             }
