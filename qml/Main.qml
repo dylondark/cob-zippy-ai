@@ -158,7 +158,10 @@ Window {
                 RowLayout {
                     visible: chatModel.count === 0
                     anchors.fill: parent
-                    anchors.margins: sz(40)
+                    anchors.leftMargin: sz(40)
+                    anchors.rightMargin: sz(40)
+                    anchors.topMargin: sz(40)
+                    anchors.bottomMargin: 0
                     spacing: sz(50)
 
                     Image {
@@ -309,7 +312,7 @@ Window {
                                 anchors.fill: parent; anchors.leftMargin: sz(25); anchors.rightMargin: sz(25)
                                 enabled: !mainLayout.isGenerating
                                 placeholderTextColor: "white"
-                                color: "#FFFAFA"
+                                color: "white"
                                 font.pointSize: sz(12)
                                 placeholderText: "Ask Zippy anything..."
                                 verticalAlignment: TextInput.AlignVCenter
