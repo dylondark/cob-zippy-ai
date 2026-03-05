@@ -308,7 +308,7 @@ Window {
                                 id: inputField
                                 anchors.fill: parent; anchors.leftMargin: sz(25); anchors.rightMargin: sz(25)
                                 enabled: !mainLayout.isGenerating
-                                color: "white"
+                                placeholderTextColor: "white"
                                 font.pointSize: sz(12)
                                 placeholderText: "Ask Zippy anything..."
                                 verticalAlignment: TextInput.AlignVCenter
