@@ -71,6 +71,7 @@ private:
     int timeout; // in seconds
     QJsonArray messageHistory;
     QString pendingMessage; // Accumulates streaming response content
+    int toolCallCount;
 
     QNetworkAccessManager *networkManager;
     QThread requestThread;

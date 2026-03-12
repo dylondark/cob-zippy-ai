@@ -1,5 +1,6 @@
 #include "programcontroller.h"
 #include <iostream>
+#include <QDate>
 
 ProgramController::ProgramController(QObject *parent)
     : QObject(parent),
@@ -109,6 +110,12 @@ void ProgramController::generate(const QString& prompt)
         return;
     }
     QString systemPrompt = R"(You are Zippy, a helpful AI assistant for the University of Akron College of Business.
+Today's date is )" + QDate::currentDate().toString("MMMM d, yyyy") + R"(.
+
+CRITICAL INSTRUCTIONS FOR WEB SEARCH:
+1. When looking for events, news, or schedules, you MUST append the current month and year to your web_search query (e.g., "College of Business events March 2026").
+2. Before answering, check the dates inside the web search results. If the results are from a past year (like 2024 or 2025), DO NOT present them to the user. State that you could not find current events.
+
 Help users as much as you can with the information you know about the College.
 If you are not sure about something, you have access to web search and web fetch tools to allow you to retrieve information from the internet.
 Also note that you will be provided with the responses from prior uses of the tools.
@@ -121,7 +128,8 @@ IMPORTANT: Respond directly without showing your thinking process. Do not use <t
 
 OTHER INFORMATION FOR YOUR REFERENCE:
 - The phone number for the College of Business is 330-972-7042 for the undergraduate office and 330-972-7043 for the graduate office.
-- The current interim dean of the College of Business is James B. Thomson, although as of Jan 3. 2026 Dr. Terry Daugherty will take over as dean.
+- The current dean of the College of Business is Dr. Terry Daugherty.
+- The main website for the College of Business is https://www.uakron.edu/cba/
 )";
     
     ollama.sendPrompt(systemPrompt, prompt);
