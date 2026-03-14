@@ -54,6 +54,8 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
         return;
     }
 
+    toolCallCount = 0; // Reset tool call counter for each new user prompt
+
     QUrl endpoint(QString::fromStdString(url + "/api/chat"));
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
@@ -187,8 +189,7 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { onPromptReply(reply); });
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { reply->deleteLater(); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { onPromptReply(reply); });
 }
 
 void OllamaInterface::requestWebSearch(const QString &query, const QString &apiKey)
@@ -215,8 +216,7 @@ void OllamaInterface::requestWebSearch(const QString &query, const QString &apiK
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { receiveWebSearch(reply); });
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { reply->deleteLater(); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { receiveWebSearch(reply); });
 }
 
 void OllamaInterface::requestWebFetch(const QString &url, const QString &apiKey)
@@ -242,8 +242,7 @@ void OllamaInterface::requestWebFetch(const QString &url, const QString &apiKey)
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { receiveWebFetch(reply); });
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { reply->deleteLater(); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { receiveWebFetch(reply); });
 }
 
 void OllamaInterface::onPingReply(QNetworkReply *reply)
@@ -307,6 +306,19 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                     // Check if there are tool calls - only access array if not empty
                     if (!tool_calls_arr.isEmpty())
                     {
+                        toolCallCount++;
+
+                        // Prevent infinite tool call loops
+                        if (toolCallCount > 3)
+                        {
+                            std::cerr << "Tool call limit reached, forcing response." << std::endl;
+                            sendToolPrompt("You have reached the maximum number of tool calls. Please respond with the information you have gathered so far.");
+                            return;
+                        }
+
+                        // Save the assistant's tool-call message to history
+                        messageHistory.append(messageObj);
+
                         QJsonObject tool_calls = tool_calls_arr.first().toObject();
                         QJsonObject tool_calls_func = tool_calls["function"].toObject();
 
@@ -321,7 +333,6 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                             if (toolName == "web_search")
                             {
                                 QString query = toolArgs["query"].toString();
-                                //query.append(" site:uakron.edu");
                                 requestWebSearch(query, apiKey);
                             }
                             else if (toolName == "web_fetch")
@@ -337,9 +348,13 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                             }
                             else
                             {
-                                emit requestError("Unknown tool requested: " + toolName);
+                                std::cerr << "Unknown tool requested: " << toolName.toStdString() << std::endl;
+                                sendToolPrompt("Error: tool '" + toolName + "' does not exist. Available tools are: web_search, web_fetch, get_navigation. Please respond with what you know.");
                             }
                         }
+                        // Do NOT emit responseFinished() yet.
+                        // Let the tool finish and prompt the model again.
+                        return;
                     }
                     else
                     {
@@ -408,6 +423,7 @@ void OllamaInterface::receiveWebSearch(QNetworkReply *reply)
             "Do not continue attempting to use web search to answer this question.";
     }
     std::cout << text.toStdString() << std::endl;
+    reply->deleteLater();
     sendToolPrompt(text);
 }
 
@@ -425,6 +441,7 @@ void OllamaInterface::receiveWebFetch(QNetworkReply *reply)
     QString text = QString::fromUtf8(responseData);
     std::cout << "WEB FETCH RESPONSE: \n" << text.toStdString() << std::endl;
 
+    reply->deleteLater();
     sendToolPrompt(text);
 }
 
