@@ -69,9 +69,11 @@ private:
     string model;
     int contextSize; // in tokens
     int timeout; // in seconds
-    QJsonArray messageHistory;
-    QString pendingMessage; // Accumulates streaming response content
-    int toolCallCount = 0; // Track tool calls per prompt to prevent infinite loops
+    QJsonArray messageHistory;      // Persistent: only user + final assistant messages
+    QJsonArray workingMessages;     // Temporary: includes tool calls for current exchange
+    QString currentUserPrompt;      // The current user's question (saved for history after response)
+    QString pendingMessage;         // Accumulates streaming response content
+    int toolCallCount = 0;          // Track tool calls per prompt to prevent infinite loops
 
     QNetworkAccessManager *networkManager;
     QThread requestThread;

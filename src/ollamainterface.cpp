@@ -60,12 +60,24 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    // build the chat message JSON objects
+    // Start working messages from persistent history
+    workingMessages = QJsonArray(messageHistory);
+
+    // Add system and user messages to working context only
     if (!systemPrompt.isEmpty())
     {
-        addMessageToHistory("system", systemPrompt);
+        QJsonObject sysMsg;
+        sysMsg["role"] = "system";
+        sysMsg["content"] = systemPrompt;
+        workingMessages.append(sysMsg);
     }
-    addMessageToHistory("user", userPrompt);
+    QJsonObject userMsg;
+    userMsg["role"] = "user";
+    userMsg["content"] = userPrompt;
+    workingMessages.append(userMsg);
+
+    // Save the user prompt so we can add it to persistent history later
+    currentUserPrompt = userPrompt;
 
     // build the web search tool JSON object
     QJsonObject webSearchTool;
@@ -121,7 +133,7 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     // build the final JSON object to send in the request
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
-    json["messages"] = messageHistory;
+    json["messages"] = workingMessages;
     json["stream"] = true;
     json["tools"] = QJsonArray() << webSearchTool << webFetchTool << navigationTool;
 
@@ -144,8 +156,11 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    // Add tool response as a user message
-    addMessageToHistory("tool", toolResponse);
+    // Add tool response to working context only (not persistent history)
+    QJsonObject toolMsg;
+    toolMsg["role"] = "tool";
+    toolMsg["content"] = toolResponse;
+    workingMessages.append(toolMsg);
 
     // build the web search tool JSON object
     QJsonObject webSearchTool;
@@ -183,7 +198,7 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
 
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
-    json["messages"] = messageHistory;
+    json["messages"] = workingMessages;
     json["stream"] = false;
     json["tools"] = QJsonArray() << webSearchTool << webFetchTool;
 
@@ -309,15 +324,15 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                         toolCallCount++;
 
                         // Prevent infinite tool call loops
-                        if (toolCallCount > 3)
+                        if (toolCallCount > 5)
                         {
                             std::cerr << "Tool call limit reached, forcing response." << std::endl;
                             sendToolPrompt("You have reached the maximum number of tool calls. Please respond with the information you have gathered so far.");
                             return;
                         }
 
-                        // Save the assistant's tool-call message to history
-                        messageHistory.append(messageObj);
+                        // Save the assistant's tool-call message to working context only
+                        workingMessages.append(messageObj);
 
                         QJsonObject tool_calls = tool_calls_arr.first().toObject();
                         QJsonObject tool_calls_func = tool_calls["function"].toObject();
@@ -377,6 +392,8 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
             if (obj.contains("done") && obj["done"].toBool())
             {
                 reply->deleteLater();
+                // Save only user question + final assistant response to persistent history
+                addMessageToHistory("user", currentUserPrompt);
                 addMessageToHistory("assistant", pendingMessage);
                 emit responseFinished();
                 pendingMessage.clear();
