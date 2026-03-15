@@ -3,6 +3,6 @@ OllamaKey=
 
 [Ollama]
 URL=http://cobgpu1.uanet.edu:11434
-Model=gpt-oss:20b
+Model=qwen2.5:32b
 ContextSize=32000
 Timeout=120

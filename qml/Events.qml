@@ -20,9 +20,14 @@ Page {
 
     ListModel {
         id: eventModel
-        ListElement { title: "Sales and You: How to Close"; date: "MAR 08"; time: "10:00 AM"; location: "Grand Hall" }
-        ListElement { title: "Robotic Business: AI Businessmen"; date: "MAR 15"; time: "2:00 PM"; location: "Room 304" }
-        ListElement { title: "Professional Career Opportunities"; date: "APR 20"; time: "6:00 PM"; location: "Student Union" }
+        ListElement { title: "Graduate Programs Info Session"; date: "MAR 24"; time: "12:15 PM"; location: "Virtual" }
+        ListElement { title: "Graduate Programs Info Session"; date: "APR 08"; time: "6:00 PM"; location: "Virtual" }
+        ListElement { title: "MS in Economics Info Session"; date: "APR 14"; time: "6:00 PM"; location: "Virtual" }
+        ListElement { title: "MS in Analytics/IS/SCM Info Session"; date: "APR 21"; time: "6:00 PM"; location: "Virtual" }
+        ListElement { title: "2026 Ohio Economic Forum"; date: "APR 23"; time: "2:00 PM"; location: "Student Union" }
+        ListElement { title: "Graduate Programs Info Session"; date: "APR 27"; time: "12:15 PM"; location: "Virtual" }
+        ListElement { title: "Advancing Leaders Reception 2026"; date: "APR 28"; time: "4:00 PM"; location: "Student Union" }
+        ListElement { title: "Graduate Programs Info Session"; date: "MAY 12"; time: "6:00 PM"; location: "Virtual" }
     }
 
     ListView {

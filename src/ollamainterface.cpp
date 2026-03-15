@@ -130,6 +130,18 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     navigationFunction["parameters"] = navigationParameters;
     navigationTool["function"] = navigationFunction;
 
+    // build the get_events tool JSON object (commented out for now, can be re-enabled later)
+    // QJsonObject eventsTool;
+    // eventsTool["type"] = "function";
+    // QJsonObject eventsFunction;
+    // eventsFunction["name"] = "get_events";
+    // eventsFunction["description"] = "Get upcoming events from the College of Business calendar. Use this tool whenever someone asks about College of Business events, activities, or what's happening.";
+    // QJsonObject eventsParameters;
+    // eventsParameters["type"] = "object";
+    // eventsParameters["properties"] = QJsonObject(); // no parameters needed
+    // eventsFunction["parameters"] = eventsParameters;
+    // eventsTool["function"] = eventsFunction;
+
     // build the final JSON object to send in the request
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
@@ -195,6 +207,18 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
     webFetchParameters["properties"] = fetchProperties;
     webFetchFunction["parameters"] = webFetchParameters;
     webFetchTool["function"] = webFetchFunction;
+
+    // build the get_events tool JSON object (commented out for now, can be re-enabled later)
+    // QJsonObject eventsTool;
+    // eventsTool["type"] = "function";
+    // QJsonObject eventsFunction;
+    // eventsFunction["name"] = "get_events";
+    // eventsFunction["description"] = "Get upcoming events from the College of Business calendar.";
+    // QJsonObject eventsParameters;
+    // eventsParameters["type"] = "object";
+    // eventsParameters["properties"] = QJsonObject();
+    // eventsFunction["parameters"] = eventsParameters;
+    // eventsTool["function"] = eventsFunction;
 
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
@@ -361,6 +385,10 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                                 QString directions = getNavigation(roomNumber);
                                 sendToolPrompt(directions);
                             }
+                            // else if (toolName == "get_events")
+                            // {
+                            //     requestEvents();
+                            // }
                             else
                             {
                                 std::cerr << "Unknown tool requested: " << toolName.toStdString() << std::endl;
@@ -514,6 +542,77 @@ void OllamaInterface::addMessageToHistory(QString role, QString content)
     message["content"] = content;
     messageHistory.append(message);
 }
+
+// void OllamaInterface::requestEvents()
+// {
+//     QUrl endpoint("https://calendar.uakron.edu/live/json/events/group/College%20of%20Business/");
+//     QNetworkRequest request(endpoint);
+//     std::cout << "FETCHING COB CALENDAR EVENTS" << std::endl;
+//
+//     QNetworkReply *reply = networkManager->get(request);
+//     connect(reply, &QNetworkReply::finished, this, [this, reply]() { receiveEvents(reply); });
+// }
+//
+// void OllamaInterface::receiveEvents(QNetworkReply *reply)
+// {
+//     if (reply->error() != QNetworkReply::NoError)
+//     {
+//         std::cerr << "Events fetch error: " << reply->errorString().toStdString() << std::endl;
+//         sendToolPrompt("Could not fetch events from the College of Business calendar. Suggest the user visit https://calendar.uakron.edu/cba/ directly.");
+//         reply->deleteLater();
+//         return;
+//     }
+//
+//     QByteArray responseData = reply->readAll();
+//     QJsonDocument doc = QJsonDocument::fromJson(responseData);
+//     QString text = "UPCOMING COLLEGE OF BUSINESS EVENTS:\n\n";
+//
+//     if (doc.isArray())
+//     {
+//         QJsonArray events = doc.array();
+//         if (events.isEmpty())
+//         {
+//             text += "No upcoming events found on the College of Business calendar.\n";
+//         }
+//         else
+//         {
+//             for (const QJsonValue &val : events)
+//             {
+//                 QJsonObject event = val.toObject();
+//                 QString title = event["title"].toString();
+//                 QString date = event["date"].toString();
+//                 QString date2 = event["date2"].toString();
+//                 QString time = event["date_time"].toString();
+//                 QString location = event["location"].toString();
+//                 QString summary = event["summary"].toString();
+//                 QString url = event["url"].toString();
+//
+//                 text += "- " + title + "\n";
+//                 if (!date.isEmpty())
+//                     text += "  Date: " + date + "\n";
+//                 if (!date2.isEmpty() && date2 != date)
+//                     text += "  End Date: " + date2 + "\n";
+//                 if (!time.isEmpty())
+//                     text += "  Time: " + time + "\n";
+//                 if (!location.isEmpty())
+//                     text += "  Location: " + location + "\n";
+//                 if (!summary.isEmpty())
+//                     text += "  Details: " + summary + "\n";
+//                 if (!url.isEmpty())
+//                     text += "  Link: https://calendar.uakron.edu" + url + "\n";
+//                 text += "\n";
+//             }
+//         }
+//     }
+//     else
+//     {
+//         text += "Could not parse calendar data. The calendar may be temporarily unavailable.\n";
+//     }
+//
+//     std::cout << text.toStdString() << std::endl;
+//     reply->deleteLater();
+//     sendToolPrompt(text);
+// }
 
 QString OllamaInterface::getNavigation(const QString &roomNumber)
 {
