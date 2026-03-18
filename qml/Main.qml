@@ -66,22 +66,23 @@ Window {
                     font.bold: true
                     Layout.fillWidth: true
                 }
-                Button {
-                    id: configButton
-                    text: "⚙"
-                    font.pointSize: sz(18)
-                    Layout.preferredWidth: sz(60)
-                    Layout.preferredHeight: sz(50)
-                    onClicked: {
-                        const component = Qt.createComponent("OllamaConfig.qml")
-                        const win = component.createObject()
-                        if (win) win.show()
-                    }
-                    background: Rectangle {
-                        color: configButton.hovered ? "#0a0f8f" : "transparent"
-                        radius: sz(10)
-                    }
-                }
+                // Settings button (hidden for demo)
+                // Button {
+                //     id: configButton
+                //     text: "⚙"
+                //     font.pointSize: sz(18)
+                //     Layout.preferredWidth: sz(60)
+                //     Layout.preferredHeight: sz(50)
+                //     onClicked: {
+                //         const component = Qt.createComponent("OllamaConfig.qml")
+                //         const win = component.createObject()
+                //         if (win) win.show()
+                //     }
+                //     background: Rectangle {
+                //         color: configButton.hovered ? "#0a0f8f" : "transparent"
+                //         radius: sz(10)
+                //     }
+                // }
             }
         }
 
@@ -175,14 +176,61 @@ Window {
                         antialiasing: true
                     }
 
-                    Text {
-                        text: "ZIPPY AI\nCOLLEGE OF BUSINESS"
-                        color: "#070c72"
-                        font.pointSize: sz(32)
-                        font.bold: true
-                        horizontalAlignment: Text.AlignLeft
+                    ColumnLayout {
                         Layout.fillWidth: true
                         Layout.alignment: Qt.AlignVCenter
+                        spacing: sz(25)
+
+                        Text {
+                            text: "ZIPPY AI\nCOLLEGE OF BUSINESS"
+                            color: "#070c72"
+                            font.pointSize: sz(32)
+                            font.bold: true
+                            horizontalAlignment: Text.AlignLeft
+                            Layout.fillWidth: true
+                        }
+
+                        Text {
+                            text: "Hi! I'm Zippy, your AI assistant. Ask me anything about the College of Business!"
+                            color: "#1a1a6b"
+                            font.pointSize: sz(13)
+                            wrapMode: Text.Wrap
+                            Layout.fillWidth: true
+                        }
+
+                        Flow {
+                            Layout.fillWidth: true
+                            spacing: sz(10)
+
+                            component SuggestButton: Button {
+                                height: sz(40)
+                                contentItem: Text {
+                                    text: parent.text
+                                    color: "white"
+                                    font.pointSize: sz(10)
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                                background: Rectangle {
+                                    color: parent.hovered ? "#1a1f8b" : "#070c72"
+                                    radius: sz(20)
+                                    border.color: "#3a3fff"
+                                    border.width: 1
+                                }
+                                onClicked: {
+                                    mainLayout.isGenerating = true
+                                    chatModel.append({ message: text, isUser: true })
+                                    chatModel.append({ message: "", isUser: false })
+                                    if (typeof controller !== "undefined") controller.generate(text)
+                                }
+                            }
+
+                            SuggestButton { text: "What majors do you offer?" }
+                            SuggestButton { text: "What events are coming up?" }
+                            SuggestButton { text: "Where is room 125?" }
+                            SuggestButton { text: "Tell me about the MBA program" }
+                            SuggestButton { text: "Who is the dean?" }
+                        }
                     }
                 }
 
