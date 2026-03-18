@@ -37,7 +37,7 @@ public:
     QString getNavigation(const QString &roomNumber);
 
     // fetch upcoming events from the CoB calendar
-    // void requestEvents();
+    void requestEvents();
 
     bool isConnected() const;
     void setURL(string url);
@@ -60,7 +60,7 @@ private slots:
     void onPromptReply(QNetworkReply *reply);
     void receiveWebSearch(QNetworkReply *reply);
     void receiveWebFetch(QNetworkReply *reply);
-    // void receiveEvents(QNetworkReply *reply);
+    void receiveEvents(QNetworkReply *reply);
 
 private:
     void addMessageToHistory(QString role, QString content);
