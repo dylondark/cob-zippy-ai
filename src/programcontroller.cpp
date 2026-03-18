@@ -116,7 +116,8 @@ void ProgramController::generate(const QString& prompt)
     QString systemPrompt = QString(R"PROMPT(You are Zippy, a helpful AI assistant for the University of Akron College of Business.
 Today's date is %1.
 Help users as much as you can with the information you know about the College.
-If you are not sure about something, you have access to web search and web fetch tools to allow you to retrieve information from the internet.
+You have access to web search, web fetch, get_events, and get_navigation tools.
+IMPORTANT: If the answer is NOT in the reference information provided below, you MUST use your tools to search for it. Do NOT answer from memory or guess — always search first for questions about specific people, programs, deadlines, tuition, scholarships, or anything not explicitly listed in your reference data below.
 Also note that you will be provided with the responses from prior uses of the tools.
 If previous responses do not contain the information you are looking for, feel free to use the tools again.
 If after using these tools you still cannot find the answer to a question, say you do not know and suggest the user to contact the College directly.
@@ -178,6 +179,12 @@ void ProgramController::onStreamFinished()
     // This emits the new signal for QML to hear
     emit streamFinished();
 }
+void ProgramController::abortGeneration()
+{
+    ollama.abortGeneration();
+    setGenerateStatus(Idle);
+}
+
 void ProgramController::setGenerateStatus(GenerateStatus newStatus)
 {
     if (currentGenerateStatus != newStatus)

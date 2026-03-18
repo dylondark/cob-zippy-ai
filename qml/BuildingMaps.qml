@@ -31,6 +31,7 @@ Page {
             TabButton { text: "Floor 1" }
             TabButton { text: "Floor 2" }
             TabButton { text: "Floor 3" }
+            TabButton { text: "Floor 4" }
         }
 
         Rectangle {
@@ -45,18 +46,13 @@ Page {
                 anchors.margins: 10
                 currentIndex: mapTabs.currentIndex
 
-                // Floor 1 Map
-                Image {
-                    source: "qrc:/images/floor1_map.png"
-                    fillMode: Image.PreserveAspectFit
-
-                    Text {
-                        anchors.centerIn: parent
-                        visible: parent.status !== Image.Ready
-                        text: "Floor 1 Map\n(Image not found)"
-                        horizontalAlignment: Text.AlignHCenter
-                        color: "#888"
-                    }
+                // Floor 1 Map (not shown yet - in progress)
+                Text {
+                    text: "Floor 1 Map\n(Coming Soon)"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    color: "#888"
+                    font.pixelSize: 18
                 }
 
                 // Floor 2 Map (Placeholder)
@@ -71,6 +67,15 @@ Page {
                 // Floor 3 Map (Placeholder)
                 Text {
                     text: "Floor 3 Map\n(Coming Soon)"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    color: "#888"
+                    font.pixelSize: 18
+                }
+
+                // Floor 4 Map (Placeholder)
+                Text {
+                    text: "Floor 4 Map\n(Coming Soon)"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     color: "#888"

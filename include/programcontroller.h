@@ -84,6 +84,8 @@ public:
 
     Q_INVOKABLE GenerateStatus getGenerateStatus() const;
 
+    Q_INVOKABLE void abortGeneration();
+
     Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
 
 signals:

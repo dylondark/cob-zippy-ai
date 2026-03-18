@@ -60,6 +60,10 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
+    // Trim persistent history to last 10 messages (5 exchanges) to prevent context overflow
+    while (messageHistory.size() > 10)
+        messageHistory.removeFirst();
+
     // Start working messages from persistent history
     workingMessages = QJsonArray(messageHistory);
 
@@ -151,8 +155,9 @@ void OllamaInterface::sendPrompt(const QString &systemPrompt, const QString &use
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
+    activeReply = reply;
     connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { onPromptReply(reply); });
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { reply->deleteLater(); });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { activeReply = nullptr; reply->deleteLater(); });
 }
 
 
@@ -223,12 +228,25 @@ void OllamaInterface::sendToolPrompt(const QString &toolResponse)
     QJsonObject json;
     json["model"] = QString::fromStdString(model);
     json["messages"] = workingMessages;
-    json["stream"] = false;
+    json["stream"] = true;
     json["tools"] = QJsonArray() << webSearchTool << webFetchTool << eventsTool;
 
     // send the POST request to the ollama server and wait for the reply
     QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { onPromptReply(reply); });
+    activeReply = reply;
+    connect(reply, &QNetworkReply::readyRead, this, [this, reply]() { onPromptReply(reply); });
+}
+
+void OllamaInterface::abortGeneration()
+{
+    if (activeReply)
+    {
+        activeReply->abort();
+        activeReply->deleteLater();
+        activeReply = nullptr;
+    }
+    pendingMessage.clear();
+    emit responseFinished();
 }
 
 void OllamaInterface::requestWebSearch(const QString &query, const QString &apiKey)
@@ -396,7 +414,9 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                             }
                         }
                         // Do NOT emit responseFinished() yet.
-                        // Let the tool finish and prompt the model again.
+                        // Clean up the current reply so readyRead doesn't fire again.
+                        reply->disconnect();
+                        reply->deleteLater();
                         return;
                     }
                     else

@@ -39,6 +39,9 @@ public:
     // fetch upcoming events from the CoB calendar
     void requestEvents();
 
+    // abort the current generation
+    void abortGeneration();
+
     bool isConnected() const;
     void setURL(string url);
     string getURL() const;
@@ -80,6 +83,7 @@ private:
     int toolCallCount = 0;          // Track tool calls per prompt to prevent infinite loops
 
     QNetworkAccessManager *networkManager;
+    QNetworkReply *activeReply = nullptr;  // Track the current active reply for abort
     QThread requestThread;
     ThreadWorker worker;
 };

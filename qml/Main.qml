@@ -9,7 +9,7 @@ Window {
     width: Screen.width * 0.6
     height: Screen.height * 0.6
     visible: true
-    visibility: Window.Maximized
+    visibility: Window.FullScreen
     title: qsTr("Zippy AI")
 
     readonly property real scaleFactor: Math.min(window.width / 1000, window.height / 800)
@@ -337,21 +337,28 @@ Window {
 
                         Button {
                             id: sendButton
-                            text: "↑"
-                            enabled: !mainLayout.isGenerating && inputField.text.trim() !== ""
+                            text: mainLayout.isGenerating ? "■" : "↑"
+                            enabled: mainLayout.isGenerating || inputField.text.trim() !== ""
                             Layout.preferredWidth: sz(60); Layout.preferredHeight: sz(60)
                             font.pointSize: sz(18)
                             onClicked: {
-                                var trimmedText = inputField.text.trim()
-                                if (trimmedText === "") return
-                                mainLayout.isGenerating = true
-                                chatModel.append({ message: trimmedText, isUser: true })
-                                chatModel.append({ message: "", isUser: false })
-                                if (typeof controller !== "undefined") controller.generate(trimmedText)
-                                inputField.text = ""
-                                chatListView.forceActiveFocus()
+                                if (mainLayout.isGenerating) {
+                                    // Stop generation
+                                    if (typeof controller !== "undefined") controller.abortGeneration()
+                                    mainLayout.isGenerating = false
+                                } else {
+                                    // Send message
+                                    var trimmedText = inputField.text.trim()
+                                    if (trimmedText === "") return
+                                    mainLayout.isGenerating = true
+                                    chatModel.append({ message: trimmedText, isUser: true })
+                                    chatModel.append({ message: "", isUser: false })
+                                    if (typeof controller !== "undefined") controller.generate(trimmedText)
+                                    inputField.text = ""
+                                    chatListView.forceActiveFocus()
+                                }
                             }
-                            background: Rectangle { radius: height/2; color: sendButton.enabled ? "#007AFF" : "#3a3a3c" }
+                            background: Rectangle { radius: height/2; color: sendButton.enabled ? (mainLayout.isGenerating ? "#FF3B30" : "#007AFF") : "#3a3a3c" }
                         }
                     }
                     Text {
