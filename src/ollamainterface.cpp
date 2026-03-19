@@ -241,6 +241,7 @@ void OllamaInterface::abortGeneration()
 {
     if (activeReply)
     {
+        activeReply->disconnect();
         activeReply->abort();
         activeReply->deleteLater();
         activeReply = nullptr;
@@ -417,6 +418,7 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
                         // Clean up the current reply so readyRead doesn't fire again.
                         reply->disconnect();
                         reply->deleteLater();
+                        activeReply = nullptr;
                         return;
                     }
                     else
@@ -440,6 +442,7 @@ void OllamaInterface::onPromptReply(QNetworkReply *reply)
             if (obj.contains("done") && obj["done"].toBool())
             {
                 reply->deleteLater();
+                activeReply = nullptr;
                 // Save only user question + final assistant response to persistent history
                 addMessageToHistory("user", currentUserPrompt);
                 addMessageToHistory("assistant", pendingMessage);
