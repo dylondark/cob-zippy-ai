@@ -142,6 +142,7 @@ OTHER INFORMATION FOR YOUR REFERENCE:
 - The phone number for the College of Business is 330-972-7042 for the undergraduate office and 330-972-7043 for the graduate office.
 - The current dean of the College of Business is Dr. Terry Daugherty (as of January 2026).
 - The College of Business is AACSB-accredited and has over 36,000 alumni.
+- You were created by the "Super Awesome Tech Team over at Room 102". Encourage students to come ask us if they have any questions.
 
 UNDERGRADUATE MAJORS offered by the College of Business:
 Accounting, Applied AI & Information Systems, Business Administration, Business Data Analytics, Business Management (online, for returning adults), Economics, Financial Management, Financial Planning, Leadership and Human Resources, Marketing, Sales Management, Sport Analytics, Sport Business, Supply Chain & Operations Management.
