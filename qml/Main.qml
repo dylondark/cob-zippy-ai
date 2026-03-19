@@ -74,23 +74,22 @@ Window {
                     font.bold: true
                     Layout.fillWidth: true
                 }
-                // Settings button (hidden for demo)
-                // Button {
-                //     id: configButton
-                //     text: "⚙"
-                //     font.pointSize: sz(18)
-                //     Layout.preferredWidth: sz(60)
-                //     Layout.preferredHeight: sz(50)
-                //     onClicked: {
-                //         const component = Qt.createComponent("OllamaConfig.qml")
-                //         const win = component.createObject()
-                //         if (win) win.show()
-                //     }
-                //     background: Rectangle {
-                //         color: configButton.hovered ? "#0a0f8f" : "transparent"
-                //         radius: sz(10)
-                //     }
-                // }
+                Button {
+                    id: configButton
+                    text: "⚙"
+                    font.pointSize: sz(18)
+                    Layout.preferredWidth: sz(60)
+                    Layout.preferredHeight: sz(50)
+                    onClicked: {
+                        const component = Qt.createComponent("OllamaConfig.qml")
+                        const win = component.createObject()
+                        if (win) win.show()
+                    }
+                    background: Rectangle {
+                        color: configButton.hovered ? "#0a0f8f" : "transparent"
+                        radius: sz(10)
+                    }
+                }
             }
         }
 
