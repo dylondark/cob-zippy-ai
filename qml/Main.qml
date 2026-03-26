@@ -26,6 +26,7 @@ Window {
 
     // Helper function for sending a message (used by suggested questions)
     function sendMessage(text) {
+        inactivityTimer.restart()
         mainLayout.isGenerating = true
         chatModel.append({ message: text, isUser: true })
         chatModel.append({ message: "", isUser: false })
@@ -41,6 +42,20 @@ Window {
         // Safe check ensures UI loads even if C++ controller isn't ready
         if (typeof controller !== "undefined") {
             controller.pingOllama();
+        }
+    }
+
+    // Auto-clear chat after 2 minutes of inactivity
+    Timer {
+        id: inactivityTimer
+        interval: 120000  // 2 minutes
+        running: chatModel.count > 0 && !mainLayout.isGenerating
+        repeat: false
+        onTriggered: {
+            chatModel.clear();
+            if (typeof controller !== "undefined") {
+                controller.clearHistory();
+            }
         }
     }
 
@@ -323,7 +338,7 @@ Window {
                             Layout.preferredWidth: sz(120); Layout.preferredHeight: sz(60)
                             font.pointSize: sz(10); font.bold: true
                             enabled: chatModel.count > 0 && !mainLayout.isGenerating
-                            onClicked: chatModel.clear()
+                            onClicked: { chatModel.clear(); if (typeof controller !== "undefined") controller.clearHistory() }
                             background: Rectangle { radius: height/2; color: clearChatButton.enabled ? "#8B0000" : "#5a5a5a" }
                         }
 
@@ -353,7 +368,7 @@ Window {
                                             }
                                         }
                                     }
-                                    function onStreamFinished() { mainLayout.isGenerating = false }
+                                    function onStreamFinished() { mainLayout.isGenerating = false; inactivityTimer.restart() }
                                 }
                             }
                         }

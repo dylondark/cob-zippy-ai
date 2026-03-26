@@ -250,6 +250,15 @@ void OllamaInterface::abortGeneration()
     emit responseFinished();
 }
 
+void OllamaInterface::clearHistory()
+{
+    messageHistory = QJsonArray();
+    workingMessages = QJsonArray();
+    pendingMessage.clear();
+    currentUserPrompt.clear();
+    toolCallCount = 0;
+}
+
 void OllamaInterface::requestWebSearch(const QString &query, const QString &apiKey)
 {
     if (!connected)

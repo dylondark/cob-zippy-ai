@@ -86,6 +86,8 @@ public:
 
     Q_INVOKABLE void abortGeneration();
 
+    Q_INVOKABLE void clearHistory();
+
     Q_PROPERTY(GenerateStatus generateStatus READ getGenerateStatus NOTIFY generateStatusChanged);
 
 signals:

@@ -42,6 +42,9 @@ public:
     // abort the current generation
     void abortGeneration();
 
+    // clear message history
+    void clearHistory();
+
     bool isConnected() const;
     void setURL(string url);
     string getURL() const;

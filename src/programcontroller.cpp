@@ -187,6 +187,11 @@ void ProgramController::abortGeneration()
     setGenerateStatus(Idle);
 }
 
+void ProgramController::clearHistory()
+{
+    ollama.clearHistory();
+}
+
 void ProgramController::setGenerateStatus(GenerateStatus newStatus)
 {
     if (currentGenerateStatus != newStatus)
