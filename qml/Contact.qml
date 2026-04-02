@@ -7,14 +7,14 @@ Page {
 
     property color brandColor: "#0B1F8C"
     property color brandDark: "#08145F"
-    property color pageBg: "#E7EDF7"
-    property color cardBg: "#F8FAFC"
-    property color softBlue: "#E6EEFB"
-    property color borderColor: "#C7D2E2"
+    property color pageBg: "#D6E0F0"
+    property color cardBg: "#FFFFFF"
+    property color softBlue: "#D2DEF2"
+    property color borderColor: "#AEBED8"
     property color textPrimary: "#0F172A"
     property color textSecondary: "#5F6C82"
-    property color fieldBg: "#EEF3F9"
-    property color fieldHover: "#F4F7FC"
+    property color fieldBg: "#FFFFFF"
+    property color fieldHover: "#F7FAFF"
     property color successColor: "#0F8A5F"
 
     readonly property bool hasIdentity: contactInput.text.trim().length > 0
@@ -23,18 +23,8 @@ Page {
 
     background: Rectangle {
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#F3F6FB" }
+            GradientStop { position: 0.0; color: "#E5ECF8" }
             GradientStop { position: 1.0; color: pageBg }
-        }
-
-        Rectangle {
-            width: parent.width * 0.6
-            height: parent.height * 0.28
-            x: parent.width - width * 0.7
-            y: -height * 0.35
-            radius: width / 2
-            color: "#C7D7F7"
-            opacity: 0.28
         }
 
         Rectangle {
@@ -43,8 +33,8 @@ Page {
             x: -width * 0.3
             y: parent.height * 0.24
             radius: width / 2
-            color: "#D8E7FF"
-            opacity: 0.35
+            color: "#C7D8F4"
+            opacity: 0.3
         }
     }
 
@@ -92,30 +82,6 @@ Page {
         }
     }
 
-    header: Rectangle {
-        width: parent.width
-        height: window.sz(72)
-        color: "#070c72"
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: window.sz(24)
-            anchors.rightMargin: window.sz(24)
-
-            Text {
-                text: "Contact Support"
-                color: "white"
-                font.bold: true
-                font.pixelSize: window.sz(22)
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-        }
-    }
-
     Flickable {
         id: flick
         anchors.fill: parent
@@ -131,13 +97,33 @@ Page {
         Item {
             id: contentWrapper
             width: flick.width
-            implicitHeight: mainColumn.implicitHeight + window.sz(40)
+            implicitHeight: headerSection.implicitHeight + mainColumn.implicitHeight + window.sz(48)
+
+            Rectangle {
+                id: headerSection
+                width: parent.width
+                height: window.sz(118)
+                color: "#0B1F8C"
+
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#112AA8" }
+                    GradientStop { position: 1.0; color: brandColor }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "Contact Support"
+                    color: "white"
+                    font.bold: true
+                    font.pixelSize: window.sz(26)
+                }
+            }
 
             Column {
                 id: mainColumn
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.top
-                anchors.topMargin: window.sz(20)
+                anchors.top: headerSection.bottom
+                anchors.topMargin: window.sz(24)
                 width: Math.min(parent.width * 0.92, window.sz(980))
                 spacing: window.sz(20)
                 opacity: 0
@@ -164,15 +150,6 @@ Page {
 
                 Text {
                     width: parent.width
-                    text: "We are here to help"
-                    horizontalAlignment: Text.AlignHCenter
-                    color: textPrimary
-                    font.bold: true
-                    font.pixelSize: window.sz(30)
-                }
-
-                Text {
-                    width: parent.width
                     text: "Share the issue, what you expected, and any steps you already tried. A clear message helps the team respond faster."
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
@@ -184,8 +161,8 @@ Page {
                     width: parent.width
                     radius: window.sz(24)
                     color: cardBg
-                    border.width: 1
-                    border.color: "#CFD8E6"
+                    border.width: 2
+                    border.color: "#B9C8DE"
                     implicitHeight: formLayout.implicitHeight + window.sz(40)
 
                     Behavior on border.color {
@@ -211,8 +188,8 @@ Page {
                                 visible: parent.width > window.sz(760)
                                 radius: window.sz(20)
                                 color: softBlue
-                                border.width: 1
-                                border.color: "#C8D7F1"
+                                border.width: 2
+                                border.color: "#B7CAE6"
 
                                 Column {
                                     anchors.fill: parent
@@ -361,7 +338,7 @@ Page {
                                         background: Rectangle {
                                             radius: window.sz(14)
                                             color: contactInput.hovered || contactInput.activeFocus ? fieldHover : fieldBg
-                                            border.width: contactInput.activeFocus ? 2 : 1
+                                            border.width: contactInput.activeFocus ? 2 : 2
                                             border.color: contactInput.activeFocus ? brandColor : borderColor
 
                                             Behavior on color {
@@ -402,7 +379,7 @@ Page {
                                         background: Rectangle {
                                             radius: window.sz(14)
                                             color: messageInput.hovered || messageInput.activeFocus ? fieldHover : fieldBg
-                                            border.width: messageInput.activeFocus ? 2 : 1
+                                            border.width: messageInput.activeFocus ? 2 : 2
                                             border.color: messageInput.activeFocus ? brandColor : borderColor
 
                                             Behavior on color {
@@ -508,8 +485,8 @@ Page {
                             visible: width <= window.sz(760)
                             radius: window.sz(18)
                             color: softBlue
-                            border.width: 1
-                            border.color: "#C8D7F1"
+                            border.width: 2
+                            border.color: "#B7CAE6"
 
                             Column {
                                 anchors.fill: parent
