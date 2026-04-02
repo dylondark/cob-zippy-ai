@@ -254,9 +254,10 @@ Window {
                                     border.color: "#e0e0e0"; border.width: 1
                                     Image {
                                         source: "qrc:/images/ZippyAvatar.png"
-                                        anchors.centerIn: parent
+                                        anchors.bottom: parent.bottom
+                                        anchors.horizontalCenter: parent.horizontalCenter
                                         width: parent.width - sz(4); height: parent.height - sz(4)
-                                        fillMode: Image.PreserveAspectFit
+                                        fillMode: Image.PreserveAspectCrop
                                         smooth: true; mipmap: true; antialiasing: true
                                     }
                                 }
