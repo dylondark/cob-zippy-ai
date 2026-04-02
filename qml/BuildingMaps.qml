@@ -6,7 +6,7 @@ Page {
     id: root
     //Click count is for the easter egg
     property int clickCount: 0
-    property string mapSource: "qrc:/images/MapFinalNC.png"
+    property string mapSource: "qrc:/images/MapFinalColor.png"
     property string secretSource: "qrc:/images/floor1_map.png"
 
     background: Rectangle { color: "#f5f5f7" }

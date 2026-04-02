@@ -9,5 +9,6 @@
         <file>images/thought.png</file>
         <file>data/floor1_navigation.txt</file>
         <file>images/MapFinalNC.png</file>
+        <file>images/MapFinalColor.png</file>
     </qresource>
 </RCC>
