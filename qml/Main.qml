@@ -13,6 +13,8 @@ Window {
     title: qsTr("Zippy AI")
 
     readonly property real scaleFactor: Math.min(window.width / 1000, window.height / 800)
+    property bool showAdminControls: false
+    property bool showHeaderBar: false
 
     function sz(x) {
         return Math.round(x * scaleFactor);
@@ -75,8 +77,9 @@ Window {
 
         // ===== HEADER BAR (Always Visible) =====
         Rectangle {
+            visible: showHeaderBar
             Layout.fillWidth: true
-            Layout.preferredHeight: sz(80)
+            Layout.preferredHeight: visible ? sz(80) : 0
             color: "#070c72"
             z: 10
             RowLayout {
@@ -91,10 +94,11 @@ Window {
                 }
                 Button {
                     id: configButton
+                    visible: showAdminControls
                     text: "⚙"
                     font.pointSize: sz(18)
-                    Layout.preferredWidth: sz(60)
-                    Layout.preferredHeight: sz(50)
+                    Layout.preferredWidth: visible ? sz(60) : 0
+                    Layout.preferredHeight: visible ? sz(50) : 0
                     onClicked: {
                         const component = Qt.createComponent("OllamaConfig.qml")
                         const win = component.createObject()

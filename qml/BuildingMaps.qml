@@ -4,10 +4,18 @@ import QtQuick.Layouts
 
 Page {
     id: root
-    //Click count is for the easter egg
+
     property int clickCount: 0
+    property bool showLegacyAdminButton: false
     property string mapSource: "qrc:/images/MapFinalColor.png"
     property string secretSource: "qrc:/images/floor1_map.png"
+
+    Timer {
+        id: clickResetTimer
+        interval: 1800
+        repeat: false
+        onTriggered: root.clickCount = 0
+    }
 
     background: Rectangle { color: "#f5f5f7" }
 
@@ -24,23 +32,70 @@ Page {
             color: "white"
             font.pixelSize: 20
             font.bold: true
+
             SequentialAnimation on scale {
                 id: textPulse
                 running: false
                 NumberAnimation { to: 1.05; duration: 50 }
                 NumberAnimation { to: 1.0; duration: 50 }
             }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    root.clickCount++
+                    clickResetTimer.restart()
+                    textPulse.start()
+
+                    if (root.clickCount >= 5) {
+                        root.clickCount = 0
+                        clickResetTimer.stop()
+                        root.showLegacyAdminButton = true
+                        easterEggAnimation.start()
+                    }
+                }
+            }
         }
 
-        MouseArea {
-            anchors.fill: parent
+        Button {
+            id: legacyMapButton
+            visible: root.showLegacyAdminButton
+            z: 2
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+            width: 108
+            height: 40
+            text: "Admin"
+            font.pixelSize: 14
+            font.bold: true
             onClicked: {
-                root.clickCount++
-                textPulse.start()
-
-                if (root.clickCount === 5) {
+                mapTabs.currentIndex = 0
+                if (root.mapSource !== root.secretSource) {
                     easterEggAnimation.start()
                 }
+                const component = Qt.createComponent("OllamaConfig.qml")
+                const win = component.createObject(root)
+                if (win) {
+                    win.show()
+                }
+            }
+
+            background: Rectangle {
+                color: legacyMapButton.hovered ? "#2342b2" : "#10237f"
+                radius: 10
+                border.color: "#7d92ff"
+                border.width: 1
+            }
+
+            contentItem: Text {
+                text: legacyMapButton.text
+                color: "white"
+                font.pixelSize: legacyMapButton.font.pixelSize
+                font.bold: legacyMapButton.font.bold
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
@@ -75,14 +130,12 @@ Page {
                 anchors.margins: 10
                 currentIndex: mapTabs.currentIndex
 
-                // --- Floor 1 Map ---
                 Image {
                     id: floor1Image
                     source: root.mapSource
                     fillMode: Image.PreserveAspectFit
                     opacity: 1.0
 
-                    // Easter Egg Transition
                     SequentialAnimation {
                         id: easterEggAnimation
 
@@ -106,7 +159,6 @@ Page {
                     }
                 }
 
-                // Placeholder text for other floors
                 Text { text: "Floor 2 Map\n(Coming Soon)"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; color: "#888" }
                 Text { text: "Floor 3 Map\n(Coming Soon)"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; color: "#888" }
                 Text { text: "Floor 4 Map\n(Coming Soon)"; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; color: "#888" }
