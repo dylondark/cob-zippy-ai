@@ -40,43 +40,147 @@ Page {
 
     Dialog {
         id: successDialog
+        parent: Overlay.overlay
         anchors.centerIn: parent
         modal: true
-        title: "Support request submitted"
-        standardButtons: Dialog.Ok
+        focus: true
+        padding: 0
+        closePolicy: Popup.CloseOnEscape
+        width: Math.max(window.sz(320), Math.min(window.sz(460), contactPage.width - window.sz(48)))
+
+        Overlay.modal: Rectangle {
+            color: "#7015203A"
+        }
 
         background: Rectangle {
-            radius: window.sz(18)
+            radius: window.sz(24)
             color: cardBg
             border.width: 1
             border.color: "#D7E0EC"
         }
 
-        contentItem: Item {
-            implicitWidth: dialogColumn.implicitWidth + window.sz(44)
-            implicitHeight: dialogColumn.implicitHeight + window.sz(44)
+        contentItem: ColumnLayout {
+            implicitWidth: successDialog.width
+            implicitHeight: dialogBody.implicitHeight + window.sz(56)
+            spacing: 0
 
-            Column {
-                id: dialogColumn
-                anchors.fill: parent
-                anchors.margins: window.sz(22)
-                spacing: window.sz(10)
+            ColumnLayout {
+                id: dialogBody
+                Layout.fillWidth: true
+                Layout.margins: window.sz(28)
+                spacing: window.sz(16)
 
-                Text {
-                    width: parent.width
-                    text: "Your message has been saved successfully."
-                    wrapMode: Text.Wrap
-                    color: textPrimary
-                    font.bold: true
-                    font.pixelSize: window.sz(16)
+                Item {
+                    Layout.preferredHeight: window.sz(4)
+                }
+
+                Rectangle {
+                    Layout.alignment: Qt.AlignHCenter
+                    width: window.sz(72)
+                    height: window.sz(72)
+                    radius: width / 2
+                    color: "#EAF7F1"
+                    border.width: 1
+                    border.color: "#CBE8DA"
+
+                    Canvas {
+                        anchors.centerIn: parent
+                        width: window.sz(28)
+                        height: window.sz(22)
+
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            ctx.strokeStyle = successColor
+                            ctx.lineWidth = window.sz(4)
+                            ctx.lineCap = "round"
+                            ctx.lineJoin = "round"
+                            ctx.beginPath()
+                            ctx.moveTo(window.sz(2), window.sz(12))
+                            ctx.lineTo(window.sz(10), window.sz(20))
+                            ctx.lineTo(window.sz(26), window.sz(4))
+                            ctx.stroke()
+                        }
+                    }
                 }
 
                 Text {
-                    width: parent.width
+                    Layout.fillWidth: true
+                    text: "Support request submitted"
+                    wrapMode: Text.Wrap
+                    color: textPrimary
+                    font.bold: true
+                    font.pixelSize: window.sz(24)
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: "Your message has been saved successfully."
+                    wrapMode: Text.Wrap
+                    color: textSecondary
+                    font.pixelSize: window.sz(15)
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Text {
+                    Layout.fillWidth: true
                     text: "The College of Business IT team can now review it and follow up."
                     wrapMode: Text.Wrap
                     color: textSecondary
-                    font.pixelSize: window.sz(13)
+                    font.pixelSize: window.sz(14)
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                Item {
+                    Layout.preferredHeight: window.sz(4)
+                }
+
+                Button {
+                    id: doneButton
+                    text: "Done"
+                    opacity: 1.0
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: window.sz(156)
+                    Layout.preferredHeight: window.sz(50)
+                    hoverEnabled: true
+                    onClicked: successDialog.close()
+
+                    background: Rectangle {
+                        radius: window.sz(14)
+                        color: doneButton.down ? brandDark
+                              : doneButton.hovered ? "#1733B0"
+                              : brandColor
+                        border.width: 1
+                        border.color: doneButton.hovered ? "#0D237E" : Qt.darker(brandColor, 1.08)
+                        opacity: 1.0
+                        scale: doneButton.down ? 0.985 : 1.0
+
+                        Behavior on color {
+                            ColorAnimation { duration: 140 }
+                        }
+
+                        Behavior on border.color {
+                            ColorAnimation { duration: 140 }
+                        }
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 120
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
+
+                    contentItem: Text {
+                        text: parent.text
+                        color: "white"
+                        opacity: 1.0
+                        font.bold: true
+                        font.pixelSize: window.sz(15)
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
             }
         }
@@ -391,14 +495,6 @@ Page {
                                             }
                                         }
 
-                                        Keys.onReturnPressed: function(event) {
-                                            if ((event.modifiers & Qt.ShiftModifier) === 0 && canSubmit) {
-                                                submitButton.clicked()
-                                                event.accepted = true
-                                            } else {
-                                                event.accepted = false
-                                            }
-                                        }
                                     }
 
                                     Text {
@@ -414,17 +510,13 @@ Page {
                                     Layout.fillWidth: true
                                     spacing: window.sz(12)
 
-                                    Text {
-                                        text: "Press Shift + Enter for a new line"
-                                        color: textSecondary
-                                        font.pixelSize: window.sz(12)
-                                        Layout.fillWidth: true
-                                    }
+                                    Item { Layout.fillWidth: true }
 
                                     Button {
                                         id: submitButton
                                         text: "Submit Ticket"
                                         enabled: canSubmit
+                                        opacity: 1.0
                                         Layout.preferredWidth: window.sz(184)
                                         Layout.preferredHeight: window.sz(52)
                                         hoverEnabled: true
@@ -448,13 +540,22 @@ Page {
 
                                         background: Rectangle {
                                             radius: window.sz(14)
-                                            color: !submitButton.enabled ? "#A8B4D0"
+                                            color: !submitButton.enabled ? "#B5C2DD"
                                                   : submitButton.down ? brandDark
                                                   : submitButton.hovered ? "#1733B0"
                                                   : brandColor
+                                            border.width: 1
+                                            border.color: !submitButton.enabled ? "#93A4C7"
+                                                        : submitButton.hovered ? "#0D237E"
+                                                        : Qt.darker(brandColor, 1.08)
+                                            opacity: 1.0
                                             scale: submitButton.down ? 0.985 : 1.0
 
                                             Behavior on color {
+                                                ColorAnimation { duration: 140 }
+                                            }
+
+                                            Behavior on border.color {
                                                 ColorAnimation { duration: 140 }
                                             }
 
@@ -468,7 +569,8 @@ Page {
 
                                         contentItem: Text {
                                             text: submitButton.text
-                                            color: "white"
+                                            color: !submitButton.enabled ? "#F5F8FF" : "white"
+                                            opacity: 1.0
                                             font.bold: true
                                             font.pixelSize: window.sz(15)
                                             horizontalAlignment: Text.AlignHCenter
